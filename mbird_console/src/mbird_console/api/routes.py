@@ -1,8 +1,6 @@
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, File, UploadFile
-
-from mbird_console.graph_loader import load_graph
+from fastapi import APIRouter
 
 router = APIRouter()
 
@@ -23,14 +21,6 @@ async def update_graph(graph_data: dict[str, Any]) -> dict[str, Any]:
     """Update entire graph."""
     global current_graph
     current_graph = graph_data
-    return {"status": "success", "graph": current_graph}
-
-
-@router.post("/api/graph/load")
-async def load_graph_file(file: Annotated[UploadFile, File()]) -> dict[str, Any]:
-    """Load graph from uploaded file."""
-    global current_graph
-    current_graph = load_graph(file.filename or "")
     return {"status": "success", "graph": current_graph}
 
 
