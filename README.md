@@ -6,7 +6,7 @@ v v experimental stay tuned
 
 Quick start (uses tmux):
 ```bash
-cd mbird_console
+cd console
 ./run_console.sh
 ```
 
@@ -14,14 +14,14 @@ Or manually:
 
 Backend:
 ```bash
-cd mbird_console
+cd console
 pip install -e .[dev]
 python -m mbird_console.main
 ```
 
 Frontend (separate terminal):
 ```bash
-cd mbird_console/frontend
+cd console/frontend
 npm install
 npm run dev
 ```
