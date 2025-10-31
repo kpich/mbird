@@ -15,6 +15,11 @@ dist
 __pycache__/
 *.py[cod]
 
+# frontend/node
+node_modules/
+.vite/
+package-lock.json
+
 # Vim temporary files
 *~
 *.swp
