@@ -4,6 +4,14 @@ v v experimental stay tuned
 
 ## Running the console
 
+Quick start (uses tmux):
+```bash
+cd mbird_console
+./run_console.sh
+```
+
+Or manually:
+
 Backend:
 ```bash
 cd mbird_console
