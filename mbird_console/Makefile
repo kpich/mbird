@@ -22,4 +22,4 @@ install_precommit_hooks:
 
 .PHONY: mypy
 mypy:
-	mypy --check-untyped-defs src/mbird
+	mypy --check-untyped-defs src/mbird_console

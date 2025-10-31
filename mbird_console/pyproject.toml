@@ -3,11 +3,14 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mbird"
+name = "mbird-console"
 version = "0.1.0"
-description = "mbird library"
+description = "Browser-based console for mbird graph editing"
 requires-python = ">=3.10, <4"
-dependencies = []
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -16,6 +19,7 @@ dev = [
 ]
 test = [
     "pytest",
+    "httpx",  # for testing FastAPI
 ]
 
 [tool.setuptools.packages.find]
@@ -39,4 +43,4 @@ ignore = ["SIM108"]  # Allow if-else over ternary for readability
 [tool.ruff.lint.isort]
 force-single-line = false
 force-sort-within-sections = true
-known-first-party = ["mbird"]
+known-first-party = ["mbird_console"]
