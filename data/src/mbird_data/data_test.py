@@ -5,7 +5,7 @@ import pytest
 from mbird_data import MbirdData, MbirdNode, MbirdTree
 
 
-def test_tree_serialization_roundtrip(tmp_path: Path):
+def test_tree_data_preserved_across_serialization(tmp_path: Path):
     tree = MbirdTree(root_id="root")
     tree.add_node(MbirdNode(id="root", properties={"name": "Root Node"}))
     tree.add_node(
@@ -33,7 +33,7 @@ def test_tree_serialization_roundtrip(tmp_path: Path):
     assert restored_tree.get_node("grandchild1").references == ["root"]
 
 
-def test_mbird_data_save_and_load(tmp_path: Path):
+def test_data_preserved_across_save_and_load(tmp_path: Path):
     data = MbirdData()
     data.tree = MbirdTree(root_id="root")
     data.tree.add_node(MbirdNode(id="root", properties={"type": "root"}))
@@ -71,13 +71,13 @@ def test_resolve_references_returns_actual_nodes():
     assert refs[0].id == "node1"
 
 
-def test_load_nonexistent_directory_raises_error():
+def test_loading_nonexistent_directory_raises_error():
     data = MbirdData()
     with pytest.raises(FileNotFoundError):
         data.load("/nonexistent/path.mbird")
 
 
-def test_save_without_tree_raises_error(tmp_path: Path):
+def test_saving_without_tree_raises_error(tmp_path: Path):
     data = MbirdData()
     with pytest.raises(ValueError, match="No tree loaded"):
         data.save(tmp_path / "test.mbird")
