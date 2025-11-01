@@ -32,26 +32,29 @@ def test_save_last_directory_creates_config_dir_and_writes_path(tmp_path: Path):
 
 
 def test_get_last_directory_returns_saved_path(tmp_path: Path):
-    test_path = "/saved/directory/path"
+    test_path = tmp_path / "saved" / "directory" / "path"
+    test_path.mkdir(parents=True)
     test_config_dir = tmp_path / ".mbird"
 
-    config.save_last_directory(test_path, config_dir=test_config_dir)
+    config.save_last_directory(str(test_path), config_dir=test_config_dir)
     result = config.get_last_directory(config_dir=test_config_dir)
 
-    assert result == test_path
+    assert result == str(test_path)
 
 
 def test_save_last_directory_overwrites_previous_value(tmp_path: Path):
-    first_path = "/first/path"
-    second_path = "/second/path"
+    first_path = tmp_path / "first" / "path"
+    second_path = tmp_path / "second" / "path"
+    first_path.mkdir(parents=True)
+    second_path.mkdir(parents=True)
     test_config_dir = tmp_path / ".mbird"
 
-    config.save_last_directory(first_path, config_dir=test_config_dir)
-    config.save_last_directory(second_path, config_dir=test_config_dir)
+    config.save_last_directory(str(first_path), config_dir=test_config_dir)
+    config.save_last_directory(str(second_path), config_dir=test_config_dir)
 
     result = config.get_last_directory(config_dir=test_config_dir)
 
-    assert result == second_path
+    assert result == str(second_path)
 
 
 def test_get_last_directory_without_config_dir_uses_home():
@@ -64,10 +67,34 @@ def test_get_last_directory_without_config_dir_uses_home():
 def test_save_and_get_roundtrip_with_temp_config(tmp_path: Path):
     """Test full save/get cycle with temp config directory."""
     test_config_dir = tmp_path / ".mbird"
-    test_path = str(tmp_path / "my_project.mbird")
+    test_path = tmp_path / "my_project.mbird"
+    test_path.mkdir()
 
-    config.save_last_directory(test_path, config_dir=test_config_dir)
+    config.save_last_directory(str(test_path), config_dir=test_config_dir)
     result = config.get_last_directory(config_dir=test_config_dir)
 
-    assert result == test_path
+    assert result == str(test_path)
     assert (test_config_dir / "last_directory").exists()
+
+
+def test_get_last_directory_falls_back_to_home_when_cached_path_deleted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Test that deleted cached path falls back to home directory."""
+    test_home = tmp_path / "fake_home"
+    test_home.mkdir()
+    monkeypatch.setattr(Path, "home", lambda: test_home)
+
+    test_config_dir = tmp_path / ".mbird"
+    test_path = tmp_path / "deleted_project.mbird"
+    test_path.mkdir()
+
+    # Save path while it exists
+    config.save_last_directory(str(test_path), config_dir=test_config_dir)
+
+    # Delete the path
+    test_path.rmdir()
+
+    # Should fall back to home
+    result = config.get_last_directory(config_dir=test_config_dir)
+    assert result == str(test_home)
