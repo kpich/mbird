@@ -157,3 +157,26 @@ def test_update_tree_with_invalid_structure_raises_error():
 
     update_response = client.post("/api/tree", json=invalid_tree)
     assert update_response.status_code == 400
+
+
+def test_regenerate_sets_is_stale_false_for_all_nodes(tmp_path: Path):
+    project_path = str(tmp_path / "test_project.mbird")
+
+    client.post("/api/project/create", json={"path": project_path})
+
+    tree_response = client.get("/api/tree")
+    tree_data = tree_response.json()
+    assert tree_data["is_stale"] is True
+
+    regenerate_response = client.post("/api/regenerate")
+    assert regenerate_response.status_code == 200
+
+    data = regenerate_response.json()
+    assert data["status"] == "success"
+    assert data["tree"]["is_stale"] is False
+
+
+def test_regenerate_without_project_raises_error():
+    regenerate_response = client.post("/api/regenerate")
+    assert regenerate_response.status_code == 404
+    assert "No project loaded" in regenerate_response.json()["detail"]

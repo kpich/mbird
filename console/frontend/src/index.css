@@ -49,6 +49,20 @@ body {
   color: #666;
 }
 
+.app-regenerate-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+.app-regenerate-btn:disabled {
+  cursor: not-allowed;
+}
+
 .app-save-btn {
   padding: 8px 16px;
   font-size: 14px;
@@ -281,6 +295,11 @@ body {
   border-radius: 4px;
   background-color: #f9f9f9;
   width: fit-content;
+}
+
+.tree-node-stale {
+  border: 2px solid #dc3545;
+  outline: 2px solid #dc3545;
 }
 
 .tree-node-id {

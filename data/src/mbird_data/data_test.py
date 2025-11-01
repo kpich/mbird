@@ -78,3 +78,23 @@ def test_saving_creates_nested_directories(tmp_path: Path):
 
     assert nested_dir.exists()
     assert (nested_dir / TREE_FNAME).exists()
+
+
+def test_is_stale_defaults_to_true():
+    node = MbirdNode(id="test")
+    assert node.is_stale is True
+
+
+def test_is_stale_preserved_across_save_and_load(tmp_path: Path):
+    node = MbirdNode(id="node1", is_stale=False)
+    root = MbirdNode(id="root", children=[node])
+    data = MbirdData(root=root)
+
+    mbird_dir = tmp_path / "test_stale.mbird"
+    data.save(mbird_dir)
+
+    loaded_data = MbirdData.load(mbird_dir)
+
+    assert loaded_data.root is not None
+    assert loaded_data.root.is_stale is True
+    assert loaded_data.root.children[0].is_stale is False

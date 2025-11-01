@@ -6,7 +6,7 @@ function TreeNode({ node, onAddChild, level = 0 }) {
 
   return (
     <div className="tree-node-container" style={{ marginLeft: `${level * 30}px` }}>
-      <div className="tree-node">
+      <div className={`tree-node ${node.is_stale ? 'tree-node-stale' : ''}`}>
         <span className="tree-node-id">
           {node.id}
         </span>

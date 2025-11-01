@@ -5,6 +5,7 @@ function TreeView({ treeData, onTreeChange }) {
     const newChild = {
       id: newChildId,
       children: [],
+      is_stale: true,
     }
 
     const updatedTree = addChildRecursive(treeData, parentId, newChild)
