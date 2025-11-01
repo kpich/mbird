@@ -33,54 +33,22 @@ function ProjectDialog({ onProjectLoaded }) {
 
   if (!mode) {
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '40px',
-          borderRadius: '8px',
-          maxWidth: '400px',
-          width: '100%',
-        }}>
-          <h2 style={{ marginTop: 0 }}>mbird Console</h2>
+      <div className="dialog-overlay">
+        <div className="dialog-box">
+          <h2 className="dialog-title">mbird Console</h2>
           <p>Create a new project or load an existing one.</p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="dialog-button-group">
             <button
               onClick={() => setMode('create')}
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
+              className="btn-primary"
             >
               Create New Project
             </button>
 
             <button
               onClick={() => setMode('load')}
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
+              className="btn-secondary"
             >
               Load Existing Project
             </button>
@@ -91,60 +59,29 @@ function ProjectDialog({ onProjectLoaded }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        maxWidth: '600px',
-        width: '100%',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0 }}>
+    <div className="dialog-overlay">
+      <div className="dialog-box-large">
+        <div className="dialog-header">
+          <h2>
             {mode === 'create' ? 'Create New Project' : 'Load Existing Project'}
           </h2>
           <button
             onClick={() => setMode(null)}
             disabled={loading}
-            style={{
-              padding: '8px 16px',
-              fontSize: '14px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-            }}
+            className="btn-back"
           >
             Back
           </button>
         </div>
 
         {error && (
-          <div style={{
-            padding: '12px',
-            marginBottom: '20px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
-            color: '#c00',
-          }}>
+          <div className="dialog-error">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>
+          <div className="dialog-loading">Loading...</div>
         ) : (
           <DirectoryBrowser mode={mode} onSelect={handleSelectPath} />
         )}

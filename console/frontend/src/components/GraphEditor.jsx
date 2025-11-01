@@ -28,7 +28,7 @@ function GraphEditor({ initialNodes, initialEdges, onGraphChange }) {
   }, [onEdgesChange])
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div className="graph-editor">
       <ReactFlow
         nodes={nodes}
         edges={edges}

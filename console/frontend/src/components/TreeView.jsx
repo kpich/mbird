@@ -34,7 +34,7 @@ function TreeView({ treeData, onTreeChange }) {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="tree-view">
       <TreeNode
         node={treeData}
         onAddChild={addChildToNode}
