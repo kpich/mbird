@@ -6,15 +6,19 @@ from mbird_data.models import MbirdNode
 
 
 class MbirdData:
-    def __init__(self):
-        self.root: MbirdNode | None = None
+    def __init__(self, root: MbirdNode | None = None):
+        self.root = root
 
-    def load(self, dir_path: str | Path) -> None:
+    @classmethod
+    def load(cls, dir_path: str | Path) -> "MbirdData":
         """
         Load mbird data from a directory.
 
         Args:
             dir_path: Path to the directory
+
+        Returns:
+            MbirdData instance with loaded data
         """
         dir_path = Path(dir_path)
         if not dir_path.exists():
@@ -27,7 +31,8 @@ class MbirdData:
             raise FileNotFoundError(f"Tree file not found: {tree_file}")
 
         data = json.loads(tree_file.read_text())
-        self.root = MbirdNode(**data)
+        root = MbirdNode(**data)
+        return cls(root=root)
 
     def save(self, dir_path: str | Path) -> None:
         """
