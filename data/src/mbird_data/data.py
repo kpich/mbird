@@ -11,10 +11,10 @@ class MbirdData:
 
     def load(self, dir_path: str | Path) -> None:
         """
-        Load mbird data from a .mbird directory.
+        Load mbird data from a directory.
 
         Args:
-            dir_path: Path to the .mbird directory
+            dir_path: Path to the directory
         """
         dir_path = Path(dir_path)
         if not dir_path.exists():
@@ -31,10 +31,10 @@ class MbirdData:
 
     def save(self, dir_path: str | Path) -> None:
         """
-        Save mbird data to a .mbird directory.
+        Save mbird data to a directory.
 
         Args:
-            dir_path: Path to the .mbird directory
+            dir_path: Path to the directory
         """
         if self.root is None:
             raise ValueError("No root node loaded")

@@ -17,4 +17,4 @@ clean:
 
 .PHONY: mypy
 mypy:
-	mypy --check-untyped-defs src/mbird_console
+	mypy --check-untyped-defs src/mbird_data
