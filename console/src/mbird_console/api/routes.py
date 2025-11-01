@@ -96,10 +96,9 @@ def transfer_length_to_leaves(tree_data: dict[str, Any]) -> dict[str, Any]:
     children = tree_data["children"]
 
     if parent_length is not None and children:
-        # Transfer parent length to children that don't have length
+        # Transfer parent length to ALL children (new leaf inherits parent's length)
         for child in children:
-            if child.get("length") is None:
-                child["length"] = parent_length
+            child["length"] = parent_length
         # Remove length from parent
         tree_data["length"] = None
 

@@ -128,9 +128,10 @@ def test_update_tree_with_valid_data_succeeds():
 
     new_tree = {
         "id": "root",
+        "length": None,
         "children": [
-            {"id": "child1", "children": []},
-            {"id": "child2", "children": []},
+            {"id": "child1", "length": 10.0, "children": []},
+            {"id": "child2", "length": 5.0, "children": []},
         ],
     }
 
@@ -149,10 +150,12 @@ def test_update_tree_with_valid_data_succeeds():
 def test_update_tree_with_cyclic_data_raises_error():
     cyclic_tree = {
         "id": "node1",
+        "length": None,
         "children": [
             {
                 "id": "node2",
-                "children": [{"id": "node1", "children": []}],
+                "length": None,
+                "children": [{"id": "node1", "length": 10.0, "children": []}],
             }
         ],
     }
@@ -163,7 +166,7 @@ def test_update_tree_with_cyclic_data_raises_error():
 
 
 def test_update_tree_with_invalid_structure_raises_error():
-    invalid_tree: dict[str, Any] = {"children": []}
+    invalid_tree: dict[str, Any] = {"children": [], "length": None}
 
     update_response = client.post("/api/tree", json=invalid_tree)
     assert update_response.status_code == 400
@@ -190,20 +193,6 @@ def test_regenerate_without_project_raises_error():
     regenerate_response = client.post("/api/regenerate")
     assert regenerate_response.status_code == 404
     assert "No project loaded" in regenerate_response.json()["detail"]
-
-
-def test_non_leaf_with_length_rejected():
-    client.post("/api/project/create", json={"path": "/tmp/test.mbird"})
-
-    tree_with_non_leaf_length = {
-        "id": "root",
-        "length": 10.0,
-        "children": [{"id": "child", "length": 5.0, "children": []}],
-    }
-
-    update_response = client.post("/api/tree", json=tree_with_non_leaf_length)
-    assert update_response.status_code == 400
-    assert "Non-leaf node" in update_response.json()["detail"]
 
 
 def test_adding_child_transfers_parent_length_to_child():
