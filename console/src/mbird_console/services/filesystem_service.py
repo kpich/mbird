@@ -5,10 +5,12 @@ from typing import Any
 class FilesystemService:
     """Manages filesystem operations and directory tracking."""
 
-    def __init__(self, config_dir: Path | None = None):
-        """Initialize with optional config directory (mainly for testing)."""
-        self.config_dir = (
-            config_dir if config_dir is not None else Path.home() / ".mbird"
+    def __init__(self, last_run_pointer_dir: Path | None = None):
+        """Initialize with optional dir for last_directory file (for testing)."""
+        self.last_run_pointer_dir = (
+            last_run_pointer_dir
+            if last_run_pointer_dir is not None
+            else Path.home() / ".mbird"
         )
 
     def get_home_directory(self) -> str:
@@ -21,7 +23,7 @@ class FilesystemService:
 
     def get_last_directory(self) -> str:
         """Get the last used directory, or home directory if none saved."""
-        last_dir_file = self.config_dir / "last_directory"
+        last_dir_file = self.last_run_pointer_dir / "last_directory"
         if last_dir_file.exists():
             cached_path = last_dir_file.read_text().strip()
             if Path(cached_path).exists():
@@ -30,8 +32,8 @@ class FilesystemService:
 
     def save_last_directory(self, path: str) -> None:
         """Save the last used directory path."""
-        self.config_dir.mkdir(parents=True, exist_ok=True)
-        last_dir_file = self.config_dir / "last_directory"
+        self.last_run_pointer_dir.mkdir(parents=True, exist_ok=True)
+        last_dir_file = self.last_run_pointer_dir / "last_directory"
         last_dir_file.write_text(path)
 
     def browse_directory(self, path: str = "/") -> dict[str, Any]:

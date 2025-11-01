@@ -18,8 +18,8 @@ def test_get_last_directory_returns_home_when_no_file_exists(
     test_home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: test_home)
 
-    test_config_dir = tmp_path / ".mbird"
-    service = FilesystemService(config_dir=test_config_dir)
+    test_last_run_pointer_dir = tmp_path / ".mbird"
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
 
     result = service.get_last_directory()
     assert result == str(test_home)
@@ -28,13 +28,13 @@ def test_get_last_directory_returns_home_when_no_file_exists(
 def test_save_last_directory_creates_config_dir_and_writes_path(tmp_path: Path):
     test_path = tmp_path / "some" / "test" / "path"
     test_path.mkdir(parents=True)
-    test_config_dir = tmp_path / ".mbird"
+    test_last_run_pointer_dir = tmp_path / ".mbird"
 
-    service = FilesystemService(config_dir=test_config_dir)
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
     service.save_last_directory(str(test_path))
 
-    last_dir_file = test_config_dir / "last_directory"
-    assert test_config_dir.exists()
+    last_dir_file = test_last_run_pointer_dir / "last_directory"
+    assert test_last_run_pointer_dir.exists()
     assert last_dir_file.exists()
     assert last_dir_file.read_text() == str(test_path)
 
@@ -42,9 +42,9 @@ def test_save_last_directory_creates_config_dir_and_writes_path(tmp_path: Path):
 def test_get_last_directory_returns_saved_path(tmp_path: Path):
     test_path = tmp_path / "saved" / "directory" / "path"
     test_path.mkdir(parents=True)
-    test_config_dir = tmp_path / ".mbird"
+    test_last_run_pointer_dir = tmp_path / ".mbird"
 
-    service = FilesystemService(config_dir=test_config_dir)
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
     service.save_last_directory(str(test_path))
     result = service.get_last_directory()
 
@@ -56,9 +56,9 @@ def test_save_last_directory_overwrites_previous_value(tmp_path: Path):
     second_path = tmp_path / "second" / "path"
     first_path.mkdir(parents=True)
     second_path.mkdir(parents=True)
-    test_config_dir = tmp_path / ".mbird"
+    test_last_run_pointer_dir = tmp_path / ".mbird"
 
-    service = FilesystemService(config_dir=test_config_dir)
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
     service.save_last_directory(str(first_path))
     service.save_last_directory(str(second_path))
 
@@ -69,9 +69,9 @@ def test_save_last_directory_overwrites_previous_value(tmp_path: Path):
 def test_get_default_directory_returns_last_directory(tmp_path: Path):
     test_path = tmp_path / "project" / "path"
     test_path.mkdir(parents=True)
-    test_config_dir = tmp_path / ".mbird"
+    test_last_run_pointer_dir = tmp_path / ".mbird"
 
-    service = FilesystemService(config_dir=test_config_dir)
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
     service.save_last_directory(str(test_path))
 
     result = service.get_default_directory()
@@ -79,16 +79,16 @@ def test_get_default_directory_returns_last_directory(tmp_path: Path):
 
 
 def test_save_and_get_roundtrip_with_temp_config(tmp_path: Path):
-    test_config_dir = tmp_path / ".mbird"
+    test_last_run_pointer_dir = tmp_path / ".mbird"
     test_path = tmp_path / "my_project.mbird"
     test_path.mkdir()
 
-    service = FilesystemService(config_dir=test_config_dir)
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
     service.save_last_directory(str(test_path))
     result = service.get_last_directory()
 
     assert result == str(test_path)
-    assert (test_config_dir / "last_directory").exists()
+    assert (test_last_run_pointer_dir / "last_directory").exists()
 
 
 def test_get_last_directory_falls_back_to_home_when_cached_path_deleted(
@@ -98,11 +98,11 @@ def test_get_last_directory_falls_back_to_home_when_cached_path_deleted(
     test_home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: test_home)
 
-    test_config_dir = tmp_path / ".mbird"
+    test_last_run_pointer_dir = tmp_path / ".mbird"
     test_path = tmp_path / "deleted_project.mbird"
     test_path.mkdir()
 
-    service = FilesystemService(config_dir=test_config_dir)
+    service = FilesystemService(last_run_pointer_dir=test_last_run_pointer_dir)
     service.save_last_directory(str(test_path))
 
     test_path.rmdir()
