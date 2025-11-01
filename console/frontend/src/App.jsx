@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import ProjectDialog from './components/ProjectDialog'
-import GraphEditor from './components/GraphEditor'
+import TreeView from './components/TreeView'
 
 const TREE_FILENAME = 'tree.json'
 
@@ -44,11 +44,7 @@ function App() {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
-      <div style={{ padding: '20px' }}>
-        <h3>Project loaded: {treeData?.id}</h3>
-        <pre>{JSON.stringify(treeData, null, 2)}</pre>
-        {/* TODO: Convert tree to graph and show GraphEditor */}
-      </div>
+      <TreeView treeData={treeData} onTreeChange={handleTreeChange} />
     </div>
   )
 }
