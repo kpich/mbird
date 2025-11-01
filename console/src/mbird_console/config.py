@@ -8,7 +8,10 @@ def get_last_directory(config_dir: Path | None = None) -> str:
 
     last_dir_file = config_dir / "last_directory"
     if last_dir_file.exists():
-        return last_dir_file.read_text().strip()
+        cached_path = last_dir_file.read_text().strip()
+        # Only return cached path if it still exists
+        if Path(cached_path).exists():
+            return cached_path
     return str(Path.home())
 
 
