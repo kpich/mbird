@@ -1,9 +1,11 @@
 .PHONY: dev
 dev:
+	cd ../data && pip install -e '.[dev,test]'
 	pip install -e '.[dev,test]'
 
 .PHONY: install
 install:
+	cd ../data && pip install -e .
 	pip install -e .
 
 .PHONY: test

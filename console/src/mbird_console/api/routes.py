@@ -1,38 +1,49 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from mbird_data import MbirdData, MbirdNode
 
 router = APIRouter()
 
-current_graph: dict[str, Any] = {
-    "nodes": [],
-    "edges": [],
-}
+current_data: MbirdData | None = None
 
 
-@router.get("/api/graph")
-async def get_graph() -> dict[str, Any]:
-    """Get current graph data."""
-    return current_graph
+@router.post("/api/project/create")
+async def create_project() -> dict[str, Any]:
+    """Create new project with single root node."""
+    global current_data
+    root = MbirdNode(id="root")
+    current_data = MbirdData(root=root)
+    return {"status": "success", "tree": current_data.root.model_dump()}
 
 
-@router.post("/api/graph")
-async def update_graph(graph_data: dict[str, Any]) -> dict[str, Any]:
-    """Update entire graph."""
-    global current_graph
-    current_graph = graph_data
-    return {"status": "success", "graph": current_graph}
+@router.post("/api/project/load")
+async def load_project(tree_data: dict[str, Any]) -> dict[str, Any]:
+    """Load project from tree JSON data."""
+    global current_data
+    try:
+        root = MbirdNode(**tree_data)
+        current_data = MbirdData(root=root)
+        return {"status": "success", "tree": current_data.root.model_dump()}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.post("/api/graph/node")
-async def add_node(node: dict[str, Any]) -> dict[str, Any]:
-    """Add a new node to the graph."""
-    current_graph["nodes"].append(node)
-    return {"status": "success", "node": node}
+@router.get("/api/tree")
+async def get_tree() -> dict[str, Any]:
+    """Get current tree data."""
+    if current_data is None or current_data.root is None:
+        raise HTTPException(status_code=404, detail="No project loaded")
+    return current_data.root.model_dump()
 
 
-@router.post("/api/graph/edge")
-async def add_edge(edge: dict[str, Any]) -> dict[str, Any]:
-    """Add a new edge to the graph."""
-    current_graph["edges"].append(edge)
-    return {"status": "success", "edge": edge}
+@router.post("/api/tree")
+async def update_tree(tree_data: dict[str, Any]) -> dict[str, Any]:
+    """Update entire tree."""
+    global current_data
+    try:
+        root = MbirdNode(**tree_data)
+        current_data = MbirdData(root=root)
+        return {"status": "success", "tree": current_data.root.model_dump()}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
