@@ -35,6 +35,7 @@ def test_data_preserved_across_save_and_load(tmp_path: Path):
     loaded_data = MbirdData()
     loaded_data.load(mbird_dir)
 
+    assert loaded_data.root is not None
     assert loaded_data.root.id == "root"
     assert len(loaded_data.root.children) == 1
     assert loaded_data.root.children[0].id == "node1"
@@ -65,7 +66,7 @@ def test_loading_cyclic_tree_raises_error():
     }
 
     with pytest.raises(ValueError, match="Cycle detected"):
-        MbirdNode(**cyclic_dict)
+        MbirdNode(**cyclic_dict)  # type: ignore[arg-type]
 
 
 def test_saving_creates_nested_directories(tmp_path: Path):
