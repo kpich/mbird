@@ -52,3 +52,22 @@ def test_save_last_directory_overwrites_previous_value(tmp_path: Path):
     result = config.get_last_directory(config_dir=test_config_dir)
 
     assert result == second_path
+
+
+def test_get_last_directory_without_config_dir_uses_home():
+    """Test that passing None uses default home directory."""
+    result = config.get_last_directory()
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+def test_save_and_get_roundtrip_with_temp_config(tmp_path: Path):
+    """Test full save/get cycle with temp config directory."""
+    test_config_dir = tmp_path / ".mbird"
+    test_path = str(tmp_path / "my_project.mbird")
+
+    config.save_last_directory(test_path, config_dir=test_config_dir)
+    result = config.get_last_directory(config_dir=test_config_dir)
+
+    assert result == test_path
+    assert (test_config_dir / "last_directory").exists()
