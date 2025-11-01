@@ -21,9 +21,18 @@ def reset_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     test_config_dir = tmp_path / ".mbird"
 
-    monkeypatch.setattr(config, "_get_config_dir", lambda: test_config_dir)
+    original_get = config.get_last_directory
+    original_save = config.save_last_directory
+
     monkeypatch.setattr(
-        config, "_get_last_directory_file", lambda: test_config_dir / "last_directory"
+        routes,
+        "get_last_directory",
+        lambda: original_get(config_dir=test_config_dir),
+    )
+    monkeypatch.setattr(
+        routes,
+        "save_last_directory",
+        lambda path: original_save(path, config_dir=test_config_dir),
     )
 
     yield

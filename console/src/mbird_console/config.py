@@ -1,27 +1,22 @@
 from pathlib import Path
 
 
-def _get_config_dir() -> Path:
-    """Get config directory path."""
-    return Path.home() / ".mbird"
-
-
-def _get_last_directory_file() -> Path:
-    """Get last directory file path."""
-    return _get_config_dir() / "last_directory"
-
-
-def get_last_directory() -> str:
+def get_last_directory(config_dir: Path | None = None) -> str:
     """Get the last used directory, or home directory if none saved."""
-    last_dir_file = _get_last_directory_file()
+    if config_dir is None:
+        config_dir = Path.home() / ".mbird"
+
+    last_dir_file = config_dir / "last_directory"
     if last_dir_file.exists():
         return last_dir_file.read_text().strip()
     return str(Path.home())
 
 
-def save_last_directory(path: str) -> None:
+def save_last_directory(path: str, config_dir: Path | None = None) -> None:
     """Save the last used directory path."""
-    config_dir = _get_config_dir()
+    if config_dir is None:
+        config_dir = Path.home() / ".mbird"
+
     config_dir.mkdir(parents=True, exist_ok=True)
-    last_dir_file = _get_last_directory_file()
+    last_dir_file = config_dir / "last_directory"
     last_dir_file.write_text(path)
