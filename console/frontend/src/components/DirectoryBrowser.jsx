@@ -9,8 +9,8 @@ function DirectoryBrowser({ mode, onSelect }) {
   const [newDirName, setNewDirName] = useState('')
 
   useEffect(() => {
-    // Load home directory on mount
-    fetch('/api/filesystem/home')
+    // Load default directory on mount (last used or home)
+    fetch('/api/filesystem/default')
       .then(res => res.json())
       .then(data => {
         loadDirectory(data.path)

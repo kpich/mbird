@@ -5,6 +5,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from mbird_data import MbirdData, MbirdNode
 
+from mbird_console.config import get_last_directory, save_last_directory
+
 router = APIRouter()
 
 current_data: MbirdData | None = None
@@ -24,6 +26,7 @@ async def create_project(request: dict[str, Any]) -> dict[str, Any]:
     root = MbirdNode(id="root")
     current_data = MbirdData(root=root)
     current_path = dir_path
+    save_last_directory(dir_path)
 
     if current_data.root is None:
         raise HTTPException(status_code=500, detail="Failed to create project")
@@ -42,6 +45,7 @@ async def load_project(request: dict[str, Any]) -> dict[str, Any]:
     try:
         current_data = MbirdData.load(dir_path)
         current_path = dir_path
+        save_last_directory(dir_path)
         if current_data.root is None:
             raise HTTPException(status_code=500, detail="Failed to load project")
         return {"status": "success", "tree": current_data.root.model_dump()}
@@ -106,6 +110,12 @@ async def get_save_status() -> dict[str, Any]:
 async def get_home_directory() -> dict[str, Any]:
     """Get user's home directory."""
     return {"path": str(Path.home())}
+
+
+@router.get("/api/filesystem/default")
+async def get_default_directory() -> dict[str, Any]:
+    """Get default directory for file browser (last used or home)."""
+    return {"path": get_last_directory()}
 
 
 @router.get("/api/filesystem/browse")

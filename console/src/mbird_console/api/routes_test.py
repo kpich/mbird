@@ -6,6 +6,7 @@ from mbird_data.constants import TREE_FNAME
 import pytest
 
 from mbird_console.api import routes
+from mbird_console.config import LAST_DIRECTORY_FILE
 from mbird_console.main import app
 
 client = TestClient(app)
@@ -17,6 +18,8 @@ def reset_state():
     routes.current_data = None
     routes.current_path = None
     routes.last_saved = None
+    if LAST_DIRECTORY_FILE.exists():
+        LAST_DIRECTORY_FILE.unlink()
     yield
 
 
@@ -157,3 +160,46 @@ def test_update_tree_with_invalid_structure_raises_error():
 
     update_response = client.post("/api/tree", json=invalid_tree)
     assert update_response.status_code == 400
+
+
+def test_default_directory_returns_home_when_no_saved_directory():
+    default_response = client.get("/api/filesystem/default")
+    assert default_response.status_code == 200
+
+    data = default_response.json()
+    home_response = client.get("/api/filesystem/home")
+    home_data = home_response.json()
+
+    assert data["path"] == home_data["path"]
+
+
+def test_default_directory_returns_last_directory_after_creating_project(
+    tmp_path: Path,
+):
+    project_path = str(tmp_path / "test_project.mbird")
+
+    client.post("/api/project/create", json={"path": project_path})
+
+    default_response = client.get("/api/filesystem/default")
+    assert default_response.status_code == 200
+
+    data = default_response.json()
+    assert data["path"] == project_path
+
+
+def test_default_directory_persists_after_loading_project(tmp_path: Path):
+    project_path = str(tmp_path / "loaded_project.mbird")
+
+    client.post("/api/project/create", json={"path": project_path})
+    client.post("/api/save")
+
+    routes.current_data = None
+    routes.current_path = None
+
+    client.post("/api/project/load", json={"path": project_path})
+
+    default_response = client.get("/api/filesystem/default")
+    assert default_response.status_code == 200
+
+    data = default_response.json()
+    assert data["path"] == project_path
