@@ -8,6 +8,7 @@ function App() {
   const [treeData, setTreeData] = useState(null)
   const [lastSaved, setLastSaved] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
 
   const handleProjectLoaded = (path, tree) => {
     setProjectPath(path)
@@ -42,6 +43,23 @@ function App() {
     }
   }
 
+  const handleRegenerate = async () => {
+    setRegenerating(true)
+    try {
+      const response = await fetch('/api/regenerate', { method: 'POST' })
+      if (response.ok) {
+        const data = await response.json()
+        setTreeData(data.tree)
+      } else {
+        console.error('Regenerate failed:', await response.text())
+      }
+    } catch (err) {
+      console.error('Regenerate error:', err)
+    } finally {
+      setRegenerating(false)
+    }
+  }
+
   if (!projectLoaded) {
     return <ProjectDialog onProjectLoaded={handleProjectLoaded} />
   }
@@ -51,7 +69,16 @@ function App() {
   return (
     <div className="app-container">
       <div className="app-header">
-        <h2 className="app-title">{basename}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={handleRegenerate}
+            disabled={regenerating}
+            className="app-regenerate-btn"
+          >
+            {regenerating ? 'Regenerating...' : 'Regenerate'}
+          </button>
+          <h2 className="app-title">{basename}</h2>
+        </div>
         <div className="app-header-actions">
           {lastSaved && (
             <span className="app-last-saved">

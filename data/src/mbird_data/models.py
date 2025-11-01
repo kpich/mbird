@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, model_validator
 class MbirdNode(BaseModel):
     id: str
     children: list["MbirdNode"] = Field(default_factory=list)
+    is_stale: bool = True
 
     @model_validator(mode="after")
     def validate_acyclic(self):

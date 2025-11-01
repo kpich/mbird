@@ -75,6 +75,26 @@ async def update_tree(tree_data: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
+def generate(node: MbirdNode) -> None:
+    """Recursively set is_stale=False for all nodes in tree."""
+    node.is_stale = False
+    for child in node.children:
+        generate(child)
+
+
+@router.post("/api/regenerate")
+async def regenerate() -> dict[str, Any]:
+    """Run generate() to set is_stale=False for all nodes."""
+    global current_data
+
+    if current_data is None or current_data.root is None:
+        raise HTTPException(status_code=404, detail="No project loaded")
+
+    generate(current_data.root)
+
+    return {"status": "success", "tree": current_data.root.model_dump()}
+
+
 @router.post("/api/save")
 async def save_project() -> dict[str, Any]:
     """Save project to disk using MbirdData.save()."""
