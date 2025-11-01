@@ -5,24 +5,27 @@ from fastapi.testclient import TestClient
 from mbird_data.constants import TREE_FNAME
 import pytest
 
+from mbird_console import config
 from mbird_console.api import routes
-from mbird_console.config import LAST_DIRECTORY_FILE
 from mbird_console.main import app
 
 client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
-def reset_state():
-    """Reset global state before and after each test."""
+def reset_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Reset global state and isolate config to temp directory."""
     routes.current_data = None
     routes.current_path = None
     routes.last_saved = None
-    if LAST_DIRECTORY_FILE.exists():
-        LAST_DIRECTORY_FILE.unlink()
+
+    test_config_dir = tmp_path / ".mbird"
+    test_last_dir_file = test_config_dir / "last_directory"
+
+    monkeypatch.setattr(config, "CONFIG_DIR", test_config_dir)
+    monkeypatch.setattr(config, "LAST_DIRECTORY_FILE", test_last_dir_file)
+
     yield
-    if LAST_DIRECTORY_FILE.exists():
-        LAST_DIRECTORY_FILE.unlink()
 
 
 def test_save_writes_to_disk_using_mbird_data_save(tmp_path: Path):
