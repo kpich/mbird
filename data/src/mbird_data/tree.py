@@ -13,19 +13,6 @@ class MbirdTree:
         """Add a node to the tree."""
         self.nodes[node.id] = node
 
-    def get_node(self, node_id: str) -> MbirdNode | None:
-        """Get a node by ID."""
-        return self.nodes.get(node_id)
-
-    def resolve_references(self, node_id: str) -> list[MbirdNode]:
-        """Resolve all references from a node to their actual nodes."""
-        node = self.get_node(node_id)
-        if not node:
-            return []
-        return [
-            self.nodes[ref_id] for ref_id in node.references if ref_id in self.nodes
-        ]
-
     def to_dict(self) -> dict:
         """Serialize tree to dictionary."""
         return {
