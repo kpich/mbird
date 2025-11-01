@@ -14,13 +14,15 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_state():
-    """Reset global state before each test."""
+    """Reset global state before and after each test."""
     routes.current_data = None
     routes.current_path = None
     routes.last_saved = None
     if LAST_DIRECTORY_FILE.exists():
         LAST_DIRECTORY_FILE.unlink()
     yield
+    if LAST_DIRECTORY_FILE.exists():
+        LAST_DIRECTORY_FILE.unlink()
 
 
 def test_save_writes_to_disk_using_mbird_data_save(tmp_path: Path):
