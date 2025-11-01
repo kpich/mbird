@@ -17,7 +17,17 @@ def reset_state():
     routes.current_data = None
     routes.current_path = None
     routes.last_saved = None
+
+    # Clean up real config file to prevent test pollution
+    real_config_file = Path.home() / ".mbird" / "last_directory"
+    if real_config_file.exists():
+        real_config_file.unlink()
+
     yield
+
+    # Clean up again after test
+    if real_config_file.exists():
+        real_config_file.unlink()
 
 
 def test_save_writes_to_disk_using_mbird_data_save(tmp_path: Path):
