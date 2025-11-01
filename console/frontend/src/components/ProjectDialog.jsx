@@ -1,55 +1,30 @@
 import { useState } from 'react'
+import DirectoryBrowser from './DirectoryBrowser'
 
 function ProjectDialog({ onProjectLoaded }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [path, setPath] = useState('')
   const [mode, setMode] = useState(null)
 
-  const handleCreateNew = async (e) => {
-    e.preventDefault()
+  const handleSelectPath = async (selectedPath) => {
     setError(null)
     setLoading(true)
 
     try {
-      const response = await fetch('/api/project/create', {
+      const endpoint = mode === 'create' ? '/api/project/create' : '/api/project/load'
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path }),
+        body: JSON.stringify({ path: selectedPath }),
       })
 
       if (!response.ok) {
         const text = await response.text()
-        throw new Error(`Failed to create project: ${response.status} ${text}`)
+        throw new Error(`Failed to ${mode} project: ${response.status} ${text}`)
       }
 
       const data = await response.json()
-      onProjectLoaded(path, data.tree)
-    } catch (err) {
-      setError(err.message)
-      setLoading(false)
-    }
-  }
-
-  const handleLoadExisting = async (e) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-
-    try {
-      const response = await fetch('/api/project/load', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path }),
-      })
-
-      if (!response.ok) {
-        const text = await response.text()
-        throw new Error(`Failed to load project: ${response.status} ${text}`)
-      }
-
-      const data = await response.json()
-      onProjectLoaded(path, data.tree)
+      onProjectLoaded(selectedPath, data.tree)
     } catch (err) {
       setError(err.message)
       setLoading(false)
@@ -129,14 +104,31 @@ function ProjectDialog({ onProjectLoaded }) {
     }}>
       <div style={{
         backgroundColor: 'white',
-        padding: '40px',
+        padding: '30px',
         borderRadius: '8px',
-        maxWidth: '500px',
+        maxWidth: '600px',
         width: '100%',
       }}>
-        <h2 style={{ marginTop: 0 }}>
-          {mode === 'create' ? 'Create New Project' : 'Load Existing Project'}
-        </h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0 }}>
+            {mode === 'create' ? 'Create New Project' : 'Load Existing Project'}
+          </h2>
+          <button
+            onClick={() => setMode(null)}
+            disabled={loading}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+            }}
+          >
+            Back
+          </button>
+        </div>
 
         {error && (
           <div style={{
@@ -151,69 +143,11 @@ function ProjectDialog({ onProjectLoaded }) {
           </div>
         )}
 
-        <form onSubmit={mode === 'create' ? handleCreateNew : handleLoadExisting}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-              Project Path:
-            </label>
-            <input
-              type="text"
-              value={path}
-              onChange={(e) => setPath(e.target.value)}
-              placeholder="/path/to/project.mbird"
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                fontSize: '14px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-              }}
-            />
-            <small style={{ color: '#666', display: 'block', marginTop: '4px' }}>
-              {mode === 'create'
-                ? 'Will append .mbird if not present'
-                : 'Must end with .mbird'}
-            </small>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              type="button"
-              onClick={() => setMode(null)}
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '12px 24px',
-                fontSize: '16px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
-            >
-              Back
-            </button>
-
-            <button
-              type="submit"
-              disabled={loading || !path}
-              style={{
-                flex: 1,
-                padding: '12px 24px',
-                fontSize: '16px',
-                cursor: (loading || !path) ? 'not-allowed' : 'pointer',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
-            >
-              {loading ? 'Processing...' : mode === 'create' ? 'Create' : 'Load'}
-            </button>
-          </div>
-        </form>
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>
+        ) : (
+          <DirectoryBrowser mode={mode} onSelect={handleSelectPath} />
+        )}
       </div>
     </div>
   )

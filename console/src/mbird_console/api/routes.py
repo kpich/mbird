@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -93,3 +94,40 @@ async def get_save_status() -> dict[str, Any]:
     return {
         "last_saved": last_saved.isoformat() if last_saved else None,
     }
+
+
+@router.get("/api/filesystem/home")
+async def get_home_directory() -> dict[str, Any]:
+    """Get user's home directory."""
+    return {"path": str(Path.home())}
+
+
+@router.get("/api/filesystem/browse")
+async def browse_directory(path: str = "/") -> dict[str, Any]:
+    """
+    List directories in the given path.
+
+    Returns list of directories (not files) that user can navigate to.
+    """
+    try:
+        dir_path = Path(path).expanduser().resolve()
+
+        if not dir_path.exists():
+            raise HTTPException(status_code=404, detail="Directory not found")
+        if not dir_path.is_dir():
+            raise HTTPException(status_code=400, detail="Not a directory")
+
+        # List only directories, sorted alphabetically
+        directories = []
+        try:
+            for entry in sorted(dir_path.iterdir()):
+                if entry.is_dir() and not entry.name.startswith("."):
+                    directories.append({"name": entry.name, "path": str(entry)})
+        except PermissionError:
+            pass  # Skip directories we can't read
+
+        parent = str(dir_path.parent) if dir_path.parent != dir_path else None
+
+        return {"current": str(dir_path), "parent": parent, "directories": directories}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
