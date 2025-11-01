@@ -14,9 +14,7 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def reset_state():
     """Reset global state before each test."""
-    routes.current_data = None
-    routes.current_path = None
-    routes.last_saved = None
+    routes.state.reset()
 
     # Clean up real config file to prevent test pollution
     real_config_file = Path.home() / ".mbird" / "last_directory"
