@@ -8,14 +8,18 @@ if ! command -v tmux &> /dev/null; then
     exit 1
 fi
 
+# Capture current Python binary (preserves conda env)
+PYTHON_BIN=$(which python)
+
 echo "Starting mbird console..."
+echo "Using Python: $PYTHON_BIN"
 
 # Kill existing session if it exists
 tmux kill-session -t "$SESSION_NAME" 2>/dev/null || true
 
 # Create new session with backend
 tmux new-session -d -s "$SESSION_NAME" -n backend -c "$(pwd)"
-tmux send-keys -t "$SESSION_NAME:backend" "python -m mbird_console.main" C-m
+tmux send-keys -t "$SESSION_NAME:backend" "$PYTHON_BIN -m mbird_console.main" C-m
 
 # Create new window for frontend
 tmux new-window -t "$SESSION_NAME" -n frontend -c "$(pwd)/frontend"
