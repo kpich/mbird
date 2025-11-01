@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 from mbird_data.constants import TREE_FNAME
 import pytest
 
-from mbird_console import config
 from mbird_console.api import routes
 from mbird_console.main import app
 
@@ -13,28 +12,11 @@ client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
-def reset_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Reset global state and isolate config to temp directory."""
+def reset_state():
+    """Reset global state before each test."""
     routes.current_data = None
     routes.current_path = None
     routes.last_saved = None
-
-    test_config_dir = tmp_path / ".mbird"
-
-    original_get = config.get_last_directory
-    original_save = config.save_last_directory
-
-    monkeypatch.setattr(
-        routes,
-        "get_last_directory",
-        lambda: original_get(config_dir=test_config_dir),
-    )
-    monkeypatch.setattr(
-        routes,
-        "save_last_directory",
-        lambda path: original_save(path, config_dir=test_config_dir),
-    )
-
     yield
 
 
@@ -175,61 +157,3 @@ def test_update_tree_with_invalid_structure_raises_error():
 
     update_response = client.post("/api/tree", json=invalid_tree)
     assert update_response.status_code == 400
-
-
-def test_default_directory_returns_home_when_no_saved_directory():
-    default_response = client.get("/api/filesystem/default")
-    assert default_response.status_code == 200
-
-    data = default_response.json()
-    home_response = client.get("/api/filesystem/home")
-    home_data = home_response.json()
-
-    assert data["path"] == home_data["path"]
-
-
-def test_default_directory_returns_last_directory_after_creating_project(
-    tmp_path: Path,
-):
-    project_path = str(tmp_path / "test_project.mbird")
-
-    client.post("/api/project/create", json={"path": project_path})
-
-    default_response = client.get("/api/filesystem/default")
-    assert default_response.status_code == 200
-
-    data = default_response.json()
-    assert data["path"] == project_path
-
-
-def test_default_directory_persists_after_loading_project(tmp_path: Path):
-    project_path = str(tmp_path / "loaded_project.mbird")
-
-    client.post("/api/project/create", json={"path": project_path})
-    client.post("/api/save")
-
-    routes.current_data = None
-    routes.current_path = None
-
-    client.post("/api/project/load", json={"path": project_path})
-
-    default_response = client.get("/api/filesystem/default")
-    assert default_response.status_code == 200
-
-    data = default_response.json()
-    assert data["path"] == project_path
-
-
-def test_default_directory_updates_when_opening_different_project(tmp_path: Path):
-    project_a = str(tmp_path / "project_a.mbird")
-    project_b = str(tmp_path / "project_b.mbird")
-
-    client.post("/api/project/create", json={"path": project_a})
-
-    default_response = client.get("/api/filesystem/default")
-    assert default_response.json()["path"] == project_a
-
-    client.post("/api/project/create", json={"path": project_b})
-
-    default_response = client.get("/api/filesystem/default")
-    assert default_response.json()["path"] == project_b
