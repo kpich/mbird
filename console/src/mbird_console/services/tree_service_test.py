@@ -66,6 +66,7 @@ def test_regenerate_sets_is_stale_false_for_all_nodes():
 
     TreeService.regenerate(data)
 
+    assert data.root is not None
     assert data.root.is_stale is False
     assert data.root.children[0].is_stale is False
     assert data.root.children[1].is_stale is False
