@@ -17,7 +17,17 @@ def reset_state():
     routes.current_data = None
     routes.current_path = None
     routes.last_saved = None
+
+    # Clean up real config file to prevent test pollution
+    real_config_file = Path.home() / ".mbird" / "last_directory"
+    if real_config_file.exists():
+        real_config_file.unlink()
+
     yield
+
+    # Clean up again after test
+    if real_config_file.exists():
+        real_config_file.unlink()
 
 
 def test_save_writes_to_disk_using_mbird_data_save(tmp_path: Path):
@@ -118,9 +128,10 @@ def test_update_tree_with_valid_data_succeeds():
 
     new_tree = {
         "id": "root",
+        "length": None,
         "children": [
-            {"id": "child1", "children": []},
-            {"id": "child2", "children": []},
+            {"id": "child1", "length": 10.0, "children": []},
+            {"id": "child2", "length": 5.0, "children": []},
         ],
     }
 
@@ -139,10 +150,12 @@ def test_update_tree_with_valid_data_succeeds():
 def test_update_tree_with_cyclic_data_raises_error():
     cyclic_tree = {
         "id": "node1",
+        "length": None,
         "children": [
             {
                 "id": "node2",
-                "children": [{"id": "node1", "children": []}],
+                "length": None,
+                "children": [{"id": "node1", "length": 10.0, "children": []}],
             }
         ],
     }
@@ -153,7 +166,7 @@ def test_update_tree_with_cyclic_data_raises_error():
 
 
 def test_update_tree_with_invalid_structure_raises_error():
-    invalid_tree: dict[str, Any] = {"children": []}
+    invalid_tree: dict[str, Any] = {"children": [], "length": None}
 
     update_response = client.post("/api/tree", json=invalid_tree)
     assert update_response.status_code == 400
@@ -180,3 +193,20 @@ def test_regenerate_without_project_raises_error():
     regenerate_response = client.post("/api/regenerate")
     assert regenerate_response.status_code == 404
     assert "No project loaded" in regenerate_response.json()["detail"]
+
+
+def test_adding_child_transfers_parent_length_to_child():
+    client.post("/api/project/create", json={"path": "/tmp/test.mbird"})
+
+    tree_with_new_child = {
+        "id": "root",
+        "length": 15.0,
+        "children": [{"id": "new_child", "length": 10.0, "children": []}],
+    }
+
+    update_response = client.post("/api/tree", json=tree_with_new_child)
+    assert update_response.status_code == 200
+
+    data = update_response.json()
+    assert data["tree"]["length"] is None
+    assert data["tree"]["children"][0]["length"] == 15.0

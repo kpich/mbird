@@ -307,6 +307,21 @@ body {
   font-weight: bold;
 }
 
+.tree-node-length-input {
+  width: 60px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.tree-node-length-display {
+  font-size: 13px;
+  color: #666;
+  font-family: monospace;
+}
+
 .tree-node-add-button {
   width: 24px;
   height: 24px;

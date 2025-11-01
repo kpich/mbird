@@ -7,9 +7,9 @@ from mbird_data.constants import TREE_FNAME
 
 
 def test_data_preserved_across_save_and_load(tmp_path: Path):
-    node2 = MbirdNode(id="node2")
-    node1 = MbirdNode(id="node1", children=[node2])
-    root = MbirdNode(id="root", children=[node1])
+    node2 = MbirdNode(id="node2", length=5.0)
+    node1 = MbirdNode(id="node1", length=None, children=[node2])
+    root = MbirdNode(id="root", length=None, children=[node1])
     data = MbirdData(root=root)
 
     mbird_dir = tmp_path / "test_dir.mbird"
@@ -57,10 +57,12 @@ def test_save_appends_mbird_extension_if_missing(tmp_path: Path):
 def test_loading_cyclic_tree_raises_error():
     cyclic_dict = {
         "id": "node1",
+        "length": None,
         "children": [
             {
                 "id": "node2",
-                "children": [{"id": "node1", "children": []}],
+                "length": None,
+                "children": [{"id": "node1", "length": 10.0, "children": []}],
             }
         ],
     }
@@ -86,8 +88,8 @@ def test_is_stale_defaults_to_true():
 
 
 def test_is_stale_preserved_across_save_and_load(tmp_path: Path):
-    node = MbirdNode(id="node1", is_stale=False)
-    root = MbirdNode(id="root", children=[node])
+    node = MbirdNode(id="node1", is_stale=False, length=8.0)
+    root = MbirdNode(id="root", length=None, children=[node])
     data = MbirdData(root=root)
 
     mbird_dir = tmp_path / "test_stale.mbird"

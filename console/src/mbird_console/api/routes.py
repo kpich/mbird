@@ -66,6 +66,9 @@ async def update_tree(tree_data: dict[str, Any]) -> dict[str, Any]:
     """Update entire tree."""
     global current_data
     try:
+        # Transfer length from non-leaf to leaf nodes before validation
+        tree_data = transfer_length_to_leaves(tree_data)
+
         root = MbirdNode(**tree_data)
         current_data = MbirdData(root=root)
         if current_data.root is None:
@@ -80,6 +83,29 @@ def generate(node: MbirdNode) -> None:
     node.is_stale = False
     for child in node.children:
         generate(child)
+
+
+def transfer_length_to_leaves(tree_data: dict[str, Any]) -> dict[str, Any]:
+    """Transfer length from non-leaf nodes to their children (leaf-only constraint)."""
+    if not tree_data.get("children"):
+        # Leaf node, keep as is
+        return tree_data
+
+    # Non-leaf node
+    parent_length = tree_data.get("length")
+    children = tree_data["children"]
+
+    if parent_length is not None and children:
+        # Transfer parent length to ALL children (new leaf inherits parent's length)
+        for child in children:
+            child["length"] = parent_length
+        # Remove length from parent
+        tree_data["length"] = None
+
+    # Recursively process children
+    tree_data["children"] = [transfer_length_to_leaves(child) for child in children]
+
+    return tree_data
 
 
 @router.post("/api/regenerate")

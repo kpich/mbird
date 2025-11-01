@@ -5,6 +5,7 @@ class MbirdNode(BaseModel):
     id: str
     children: list["MbirdNode"] = Field(default_factory=list)
     is_stale: bool = True
+    length: float | None = Field(default=10.0, ge=0)
 
     @model_validator(mode="after")
     def validate_acyclic(self):
@@ -28,4 +29,14 @@ class MbirdNode(BaseModel):
         if has_cycle(self, set()):
             raise ValueError(f"Cycle detected in tree involving node: {self.id}")
 
+        return self
+
+    @model_validator(mode="after")
+    def validate_leaf_only_length(self):
+        """Ensure only leaf nodes (no children) have length."""
+        if self.children and self.length is not None:
+            raise ValueError(
+                f"Non-leaf node {self.id} cannot have length. "
+                "Only leaf nodes can have length values."
+            )
         return self
