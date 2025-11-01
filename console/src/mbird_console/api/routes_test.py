@@ -205,3 +205,18 @@ def test_default_directory_persists_after_loading_project(tmp_path: Path):
 
     data = default_response.json()
     assert data["path"] == project_path
+
+
+def test_default_directory_updates_when_opening_different_project(tmp_path: Path):
+    project_a = str(tmp_path / "project_a.mbird")
+    project_b = str(tmp_path / "project_b.mbird")
+
+    client.post("/api/project/create", json={"path": project_a})
+
+    default_response = client.get("/api/filesystem/default")
+    assert default_response.json()["path"] == project_a
+
+    client.post("/api/project/create", json={"path": project_b})
+
+    default_response = client.get("/api/filesystem/default")
+    assert default_response.json()["path"] == project_b
