@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 from fastapi.testclient import TestClient
 from mbird_data.constants import TREE_FNAME
@@ -152,7 +153,7 @@ def test_update_tree_with_cyclic_data_raises_error():
 
 
 def test_update_tree_with_invalid_structure_raises_error():
-    invalid_tree = {"children": []}
+    invalid_tree: dict[str, Any] = {"children": []}
 
     update_response = client.post("/api/tree", json=invalid_tree)
     assert update_response.status_code == 400
