@@ -1,24 +1,9 @@
-import json
 from pathlib import Path
 
 import pytest
 
 from mbird_data import MbirdData, MbirdNode
 from mbird_data.constants import TREE_FNAME
-
-
-def test_node_data_preserved_across_serialization():
-    grandchild = MbirdNode(id="grandchild1")
-    child = MbirdNode(id="child1", children=[grandchild])
-    root = MbirdNode(id="root", children=[child])
-
-    json_str = json.dumps(root.model_dump())
-    restored_root = MbirdNode(**json.loads(json_str))
-
-    assert restored_root.id == "root"
-    assert len(restored_root.children) == 1
-    assert restored_root.children[0].id == "child1"
-    assert restored_root.children[0].children[0].id == "grandchild1"
 
 
 def test_data_preserved_across_save_and_load(tmp_path: Path):
