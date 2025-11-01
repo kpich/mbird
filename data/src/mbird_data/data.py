@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from mbird_data.constants import DEFAULT_TREE_FILENAME
+from mbird_data.constants import TREE_FNAME
 from mbird_data.tree import MbirdTree
 
 
@@ -21,7 +21,7 @@ class MbirdData:
         if not dir_path.is_dir():
             raise NotADirectoryError(f"Not a directory: {dir_path}")
 
-        tree_file = dir_path / DEFAULT_TREE_FILENAME
+        tree_file = dir_path / TREE_FNAME
         if not tree_file.exists():
             raise FileNotFoundError(f"Tree file not found: {tree_file}")
 
@@ -40,5 +40,5 @@ class MbirdData:
         dir_path = Path(dir_path)
         dir_path.mkdir(parents=True, exist_ok=True)
 
-        tree_file = dir_path / DEFAULT_TREE_FILENAME
+        tree_file = dir_path / TREE_FNAME
         self.tree.save(tree_file)

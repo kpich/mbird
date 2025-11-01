@@ -1,1 +1,1 @@
-DEFAULT_TREE_FILENAME = "tree.json"
+TREE_FNAME = "tree.json"
