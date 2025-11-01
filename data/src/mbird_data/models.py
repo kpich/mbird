@@ -8,9 +8,10 @@ class MbirdNode(BaseModel):
     @model_validator(mode="after")
     def validate_acyclic(self):
         """Ensure the tree structure is acyclic (is a DAG)."""
-        visited = set()
+        visited = set()  # nodes fully explored
 
         def has_cycle(node: "MbirdNode", visiting: set[str]) -> bool:
+            # visiting: current path from root, visited: already fully checked
             if node.id in visiting:
                 return True
             if node.id in visited:
