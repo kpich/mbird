@@ -21,11 +21,13 @@ function ProjectDialog({ onProjectLoaded }) {
 
       // Create new project on backend
       const response = await fetch('/api/project/create', { method: 'POST' })
-      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to create project')
+        const text = await response.text()
+        throw new Error(`Failed to create project: ${response.status} ${text}`)
       }
+
+      const data = await response.json()
 
       // Write tree.json to selected directory
       const fileHandle = await dirHandle.getFileHandle(TREE_FILENAME, { create: true })
@@ -71,11 +73,13 @@ function ProjectDialog({ onProjectLoaded }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(treeData),
       })
-      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to load project')
+        const text = await response.text()
+        throw new Error(`Failed to load project: ${response.status} ${text}`)
       }
+
+      const data = await response.json()
 
       // Notify parent with directory handle and tree data
       onProjectLoaded(dirHandle, data.tree)
