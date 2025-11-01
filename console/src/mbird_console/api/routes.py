@@ -115,25 +115,22 @@ async def browse_directory(path: str = "/") -> dict[str, Any]:
 
     Returns list of directories (not files) that user can navigate to.
     """
+    dir_path = Path(path).expanduser().resolve()
+
+    if not dir_path.exists():
+        raise HTTPException(status_code=404, detail="Directory not found")
+    if not dir_path.is_dir():
+        raise HTTPException(status_code=400, detail="Not a directory")
+
+    # List only directories, sorted alphabetically
+    directories = []
     try:
-        dir_path = Path(path).expanduser().resolve()
+        for entry in sorted(dir_path.iterdir()):
+            if entry.is_dir() and not entry.name.startswith("."):
+                directories.append({"name": entry.name, "path": str(entry)})
+    except PermissionError:
+        pass  # Skip directories we can't read
 
-        if not dir_path.exists():
-            raise HTTPException(status_code=404, detail="Directory not found")
-        if not dir_path.is_dir():
-            raise HTTPException(status_code=400, detail="Not a directory")
+    parent = str(dir_path.parent) if dir_path.parent != dir_path else None
 
-        # List only directories, sorted alphabetically
-        directories = []
-        try:
-            for entry in sorted(dir_path.iterdir()):
-                if entry.is_dir() and not entry.name.startswith("."):
-                    directories.append({"name": entry.name, "path": str(entry)})
-        except PermissionError:
-            pass  # Skip directories we can't read
-
-        parent = str(dir_path.parent) if dir_path.parent != dir_path else None
-
-        return {"current": str(dir_path), "parent": parent, "directories": directories}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    return {"current": str(dir_path), "parent": parent, "directories": directories}
