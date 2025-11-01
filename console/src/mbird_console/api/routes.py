@@ -1,54 +1,53 @@
-from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from mbird_data import MbirdData, MbirdNode
 
-from mbird_console.config import get_last_directory, save_last_directory
+from mbird_console.services import (
+    FilesystemService,
+    ProjectService,
+    SaveService,
+    TreeService,
+)
+from mbird_console.state import State
 
 router = APIRouter()
 
-current_data: MbirdData | None = None
-current_path: str | None = None
-last_saved: datetime | None = None
+state = State()
+project_service = ProjectService(state)
+tree_service = TreeService()
+save_service = SaveService(state)
+filesystem_service = FilesystemService()
 
 
 @router.post("/api/project/create")
 async def create_project(request: dict[str, Any]) -> dict[str, Any]:
     """Create new project with single root node."""
-    global current_data, current_path
-
     dir_path = request.get("path")
     if not dir_path:
         raise HTTPException(status_code=400, detail="Missing 'path' in request")
 
-    root = MbirdNode(id="root")
-    current_data = MbirdData(root=root)
-    current_path = dir_path
-    save_last_directory(dir_path)
+    data = project_service.create_project(dir_path)
+    filesystem_service.save_last_directory(dir_path)
 
-    if current_data.root is None:
+    if data.root is None:
         raise HTTPException(status_code=500, detail="Failed to create project")
-    return {"status": "success", "tree": current_data.root.model_dump()}
+    return {"status": "success", "tree": data.root.model_dump()}
 
 
 @router.post("/api/project/load")
 async def load_project(request: dict[str, Any]) -> dict[str, Any]:
     """Load project from directory path."""
-    global current_data, current_path
-
     dir_path = request.get("path")
     if not dir_path:
         raise HTTPException(status_code=400, detail="Missing 'path' in request")
 
     try:
-        current_data = MbirdData.load(dir_path)
-        current_path = dir_path
-        save_last_directory(dir_path)
-        if current_data.root is None:
+        data = project_service.load_project(dir_path)
+        filesystem_service.save_last_directory(dir_path)
+
+        if data.root is None:
             raise HTTPException(status_code=500, detail="Failed to load project")
-        return {"status": "success", "tree": current_data.root.model_dump()}
+        return {"status": "success", "tree": data.root.model_dump()}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
@@ -56,90 +55,51 @@ async def load_project(request: dict[str, Any]) -> dict[str, Any]:
 @router.get("/api/tree")
 async def get_tree() -> dict[str, Any]:
     """Get current tree data."""
-    if current_data is None or current_data.root is None:
+    data = project_service.get_current_data()
+    if data is None or data.root is None:
         raise HTTPException(status_code=404, detail="No project loaded")
-    return current_data.root.model_dump()
+    return data.root.model_dump()
 
 
 @router.post("/api/tree")
 async def update_tree(tree_data: dict[str, Any]) -> dict[str, Any]:
     """Update entire tree."""
-    global current_data
     try:
-        # Transfer length from non-leaf to leaf nodes before validation
-        tree_data = transfer_length_to_leaves(tree_data)
+        data = tree_service.update_tree(tree_data)
+        state.current_data = data
 
-        root = MbirdNode(**tree_data)
-        current_data = MbirdData(root=root)
-        if current_data.root is None:
+        if data.root is None:
             raise HTTPException(status_code=500, detail="Failed to update tree")
-        return {"status": "success", "tree": current_data.root.model_dump()}
+        return {"status": "success", "tree": data.root.model_dump()}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-
-
-def generate(node: MbirdNode) -> None:
-    """Recursively set is_stale=False for all nodes in tree."""
-    node.is_stale = False
-    for child in node.children:
-        generate(child)
-
-
-def transfer_length_to_leaves(tree_data: dict[str, Any]) -> dict[str, Any]:
-    """Transfer length from non-leaf nodes to their children (leaf-only constraint)."""
-    if not tree_data.get("children"):
-        # Leaf node, keep as is
-        return tree_data
-
-    # Non-leaf node
-    parent_length = tree_data.get("length")
-    children = tree_data["children"]
-
-    if parent_length is not None and children:
-        # Transfer parent length to ALL children (new leaf inherits parent's length)
-        for child in children:
-            child["length"] = parent_length
-        # Remove length from parent
-        tree_data["length"] = None
-
-    # Recursively process children
-    tree_data["children"] = [transfer_length_to_leaves(child) for child in children]
-
-    return tree_data
 
 
 @router.post("/api/regenerate")
 async def regenerate() -> dict[str, Any]:
     """Run generate() to set is_stale=False for all nodes."""
-    global current_data
-
-    if current_data is None or current_data.root is None:
+    data = project_service.get_current_data()
+    if data is None or data.root is None:
         raise HTTPException(status_code=404, detail="No project loaded")
 
-    generate(current_data.root)
-
-    return {"status": "success", "tree": current_data.root.model_dump()}
+    tree_service.regenerate(data)
+    return {"status": "success", "tree": data.root.model_dump()}
 
 
 @router.post("/api/save")
 async def save_project() -> dict[str, Any]:
     """Save project to disk using MbirdData.save()."""
-    global current_data, current_path, last_saved
+    data = project_service.get_current_data()
+    path = project_service.get_current_path()
 
-    if current_data is None or current_data.root is None:
+    if data is None or data.root is None:
         raise HTTPException(status_code=404, detail="No project loaded")
-
-    if current_path is None:
+    if path is None:
         raise HTTPException(status_code=400, detail="No project path set")
 
     try:
-        current_data.save(current_path)
-        last_saved = datetime.now(timezone.utc)
-
-        return {
-            "status": "success",
-            "timestamp": last_saved.isoformat(),
-        }
+        timestamp = save_service.save_project(data, path)
+        return {"status": "success", "timestamp": timestamp.isoformat()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -147,21 +107,20 @@ async def save_project() -> dict[str, Any]:
 @router.get("/api/save/status")
 async def get_save_status() -> dict[str, Any]:
     """Get last saved timestamp."""
-    return {
-        "last_saved": last_saved.isoformat() if last_saved else None,
-    }
+    last_saved = save_service.get_last_saved()
+    return {"last_saved": last_saved.isoformat() if last_saved else None}
 
 
 @router.get("/api/filesystem/home")
 async def get_home_directory() -> dict[str, Any]:
     """Get user's home directory."""
-    return {"path": str(Path.home())}
+    return {"path": filesystem_service.get_home_directory()}
 
 
 @router.get("/api/filesystem/default")
 async def get_default_directory() -> dict[str, Any]:
     """Get default directory for file browser (last used or home)."""
-    return {"path": get_last_directory()}
+    return {"path": filesystem_service.get_default_directory()}
 
 
 @router.get("/api/filesystem/browse")
@@ -171,22 +130,9 @@ async def browse_directory(path: str = "/") -> dict[str, Any]:
 
     Returns list of directories (not files) that user can navigate to.
     """
-    dir_path = Path(path).expanduser().resolve()
-
-    if not dir_path.exists():
-        raise HTTPException(status_code=404, detail="Directory not found")
-    if not dir_path.is_dir():
-        raise HTTPException(status_code=400, detail="Not a directory")
-
-    # List only directories, sorted alphabetically
-    directories = []
     try:
-        for entry in sorted(dir_path.iterdir()):
-            if entry.is_dir() and not entry.name.startswith("."):
-                directories.append({"name": entry.name, "path": str(entry)})
-    except PermissionError:
-        pass  # Skip directories we can't read
-
-    parent = str(dir_path.parent) if dir_path.parent != dir_path else None
-
-    return {"current": str(dir_path), "parent": parent, "directories": directories}
+        return filesystem_service.browse_directory(path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail="Directory not found") from e
+    except NotADirectoryError as e:
+        raise HTTPException(status_code=400, detail="Not a directory") from e
