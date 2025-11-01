@@ -51,3 +51,16 @@ def test_saving_without_tree_raises_error(tmp_path: Path):
     data = MbirdData()
     with pytest.raises(ValueError, match="No tree loaded"):
         data.save(tmp_path / "test.mbird")
+
+
+def test_loading_cyclic_tree_raises_error():
+    cyclic_data = {
+        "root_id": "node1",
+        "nodes": [
+            {"id": "node1", "children": ["node2"]},
+            {"id": "node2", "children": ["node1"]},
+        ],
+    }
+
+    with pytest.raises(ValueError, match="Cycle detected"):
+        MbirdTree.from_dict(cyclic_data)
