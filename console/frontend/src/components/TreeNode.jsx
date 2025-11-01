@@ -1,7 +1,14 @@
-function TreeNode({ node, onAddChild, level = 0 }) {
+function TreeNode({ node, onAddChild, onUpdateLength, level = 0 }) {
   const handleAddChild = () => {
     const newChildId = `node_${Date.now()}`
     onAddChild(node.id, newChildId)
+  }
+
+  const handleLengthChange = (e) => {
+    const newLength = parseFloat(e.target.value)
+    if (!isNaN(newLength) && newLength >= 0) {
+      onUpdateLength(node.id, newLength)
+    }
   }
 
   return (
@@ -10,6 +17,20 @@ function TreeNode({ node, onAddChild, level = 0 }) {
         <span className="tree-node-id">
           {node.id}
         </span>
+        {node.length !== null && node.length !== undefined && (
+          <input
+            type="number"
+            value={node.length}
+            onChange={handleLengthChange}
+            step="0.1"
+            min="0"
+            className="tree-node-length-input"
+            title="Length in seconds"
+          />
+        )}
+        {node.length !== null && node.length !== undefined && (
+          <span className="tree-node-length-display">s</span>
+        )}
         <button
           onClick={handleAddChild}
           className="tree-node-add-button"
@@ -26,6 +47,7 @@ function TreeNode({ node, onAddChild, level = 0 }) {
               key={child.id}
               node={child}
               onAddChild={onAddChild}
+              onUpdateLength={onUpdateLength}
               level={level + 1}
             />
           ))}

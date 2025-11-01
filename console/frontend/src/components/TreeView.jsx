@@ -6,6 +6,7 @@ function TreeView({ treeData, onTreeChange }) {
       id: newChildId,
       children: [],
       is_stale: true,
+      length: 10.0,
     }
 
     const updatedTree = addChildRecursive(treeData, parentId, newChild)
@@ -30,6 +31,29 @@ function TreeView({ treeData, onTreeChange }) {
     return node
   }
 
+  const updateNodeLength = (nodeId, newLength) => {
+    const updatedTree = updateLengthRecursive(treeData, nodeId, newLength)
+    onTreeChange(updatedTree)
+  }
+
+  const updateLengthRecursive = (node, nodeId, newLength) => {
+    if (node.id === nodeId) {
+      return {
+        ...node,
+        length: newLength,
+      }
+    }
+
+    if (node.children && node.children.length > 0) {
+      return {
+        ...node,
+        children: node.children.map(child => updateLengthRecursive(child, nodeId, newLength)),
+      }
+    }
+
+    return node
+  }
+
   if (!treeData) {
     return <div>No tree data</div>
   }
@@ -39,6 +63,7 @@ function TreeView({ treeData, onTreeChange }) {
       <TreeNode
         node={treeData}
         onAddChild={addChildToNode}
+        onUpdateLength={updateNodeLength}
         level={0}
       />
     </div>

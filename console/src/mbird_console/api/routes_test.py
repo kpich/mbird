@@ -180,3 +180,34 @@ def test_regenerate_without_project_raises_error():
     regenerate_response = client.post("/api/regenerate")
     assert regenerate_response.status_code == 404
     assert "No project loaded" in regenerate_response.json()["detail"]
+
+
+def test_non_leaf_with_length_rejected():
+    client.post("/api/project/create", json={"path": "/tmp/test.mbird"})
+
+    tree_with_non_leaf_length = {
+        "id": "root",
+        "length": 10.0,
+        "children": [{"id": "child", "length": 5.0, "children": []}],
+    }
+
+    update_response = client.post("/api/tree", json=tree_with_non_leaf_length)
+    assert update_response.status_code == 400
+    assert "Non-leaf node" in update_response.json()["detail"]
+
+
+def test_adding_child_transfers_parent_length_to_child():
+    client.post("/api/project/create", json={"path": "/tmp/test.mbird"})
+
+    tree_with_new_child = {
+        "id": "root",
+        "length": 15.0,
+        "children": [{"id": "new_child", "length": 10.0, "children": []}],
+    }
+
+    update_response = client.post("/api/tree", json=tree_with_new_child)
+    assert update_response.status_code == 200
+
+    data = update_response.json()
+    assert data["tree"]["length"] is None
+    assert data["tree"]["children"][0]["length"] == 15.0
