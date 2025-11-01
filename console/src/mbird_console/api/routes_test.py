@@ -2,10 +2,21 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 from mbird_data.constants import TREE_FNAME
+import pytest
 
+from mbird_console.api import routes
 from mbird_console.main import app
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_state():
+    """Reset global state before each test."""
+    routes.current_data = None
+    routes.current_path = None
+    routes.last_saved = None
+    yield
 
 
 def test_save_writes_to_disk_using_mbird_data_save(tmp_path: Path):

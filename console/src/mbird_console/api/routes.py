@@ -25,6 +25,8 @@ async def create_project(request: dict[str, Any]) -> dict[str, Any]:
     current_data = MbirdData(root=root)
     current_path = dir_path
 
+    if current_data.root is None:
+        raise HTTPException(status_code=500, detail="Failed to create project")
     return {"status": "success", "tree": current_data.root.model_dump()}
 
 
@@ -40,6 +42,8 @@ async def load_project(request: dict[str, Any]) -> dict[str, Any]:
     try:
         current_data = MbirdData.load(dir_path)
         current_path = dir_path
+        if current_data.root is None:
+            raise HTTPException(status_code=500, detail="Failed to load project")
         return {"status": "success", "tree": current_data.root.model_dump()}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -60,6 +64,8 @@ async def update_tree(tree_data: dict[str, Any]) -> dict[str, Any]:
     try:
         root = MbirdNode(**tree_data)
         current_data = MbirdData(root=root)
+        if current_data.root is None:
+            raise HTTPException(status_code=500, detail="Failed to update tree")
         return {"status": "success", "tree": current_data.root.model_dump()}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
