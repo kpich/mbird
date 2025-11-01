@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from mbird_data.constants import TREE_FNAME
+from mbird_data.constants import MBIRD_EXT, TREE_FNAME
 from mbird_data.models import MbirdNode
 
 
@@ -15,12 +15,16 @@ class MbirdData:
         Load mbird data from a directory.
 
         Args:
-            dir_path: Path to the directory
+            dir_path: Path to the directory (must end with .mbird)
 
         Returns:
             MbirdData instance with loaded data
         """
         dir_path = Path(dir_path)
+
+        if not str(dir_path).endswith(MBIRD_EXT):
+            raise ValueError(f"Directory must have {MBIRD_EXT} extension: {dir_path}")
+
         if not dir_path.exists():
             raise FileNotFoundError(f"Directory not found: {dir_path}")
         if not dir_path.is_dir():
@@ -39,12 +43,16 @@ class MbirdData:
         Save mbird data to a directory.
 
         Args:
-            dir_path: Path to the directory
+            dir_path: Path to the directory (will append .mbird if missing)
         """
         if self.root is None:
             raise ValueError("No root node loaded")
 
         dir_path = Path(dir_path)
+
+        if not str(dir_path).endswith(MBIRD_EXT):
+            dir_path = Path(str(dir_path) + MBIRD_EXT)
+
         dir_path.mkdir(parents=True, exist_ok=True)
 
         tree_file = dir_path / TREE_FNAME

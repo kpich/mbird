@@ -12,7 +12,7 @@ def test_data_preserved_across_save_and_load(tmp_path: Path):
     root = MbirdNode(id="root", children=[node1])
     data = MbirdData(root=root)
 
-    mbird_dir = tmp_path / "test_dir"
+    mbird_dir = tmp_path / "test_dir.mbird"
     data.save(mbird_dir)
 
     assert (mbird_dir / TREE_FNAME).exists()
@@ -28,13 +28,30 @@ def test_data_preserved_across_save_and_load(tmp_path: Path):
 
 def test_loading_nonexistent_directory_raises_error():
     with pytest.raises(FileNotFoundError):
-        MbirdData.load("/nonexistent/path")
+        MbirdData.load("/nonexistent/path.mbird")
+
+
+def test_loading_without_mbird_extension_raises_error():
+    with pytest.raises(ValueError, match="must have .mbird extension"):
+        MbirdData.load("/some/path")
 
 
 def test_saving_without_root_raises_error(tmp_path: Path):
     data = MbirdData()
     with pytest.raises(ValueError, match="No root node loaded"):
-        data.save(tmp_path / "test_dir")
+        data.save(tmp_path / "test_dir.mbird")
+
+
+def test_save_appends_mbird_extension_if_missing(tmp_path: Path):
+    root = MbirdNode(id="root")
+    data = MbirdData(root=root)
+
+    dir_without_ext = tmp_path / "myproject"
+    data.save(dir_without_ext)
+
+    expected_dir = tmp_path / "myproject.mbird"
+    assert expected_dir.exists()
+    assert (expected_dir / TREE_FNAME).exists()
 
 
 def test_loading_cyclic_tree_raises_error():
@@ -56,7 +73,7 @@ def test_saving_creates_nested_directories(tmp_path: Path):
     root = MbirdNode(id="root")
     data = MbirdData(root=root)
 
-    nested_dir = tmp_path / "deeply" / "nested" / "path"
+    nested_dir = tmp_path / "deeply" / "nested" / "path.mbird"
     data.save(nested_dir)
 
     assert nested_dir.exists()
