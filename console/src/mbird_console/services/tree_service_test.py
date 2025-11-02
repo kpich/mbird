@@ -1,4 +1,5 @@
 from typing import Any
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -100,22 +101,31 @@ def test_generate_recursively_sets_is_stale_false(tmp_path):
     assert child2.is_stale is False
 
 
-def test_generate_creates_audio_files_for_stale_leaf_nodes(tmp_path):
+def test_generate_calls_audio_generator_for_stale_leaf_nodes(tmp_path):
+    """Unit test: verify TreeService calls MbirdGenerator without actual I/O."""
     child1 = MbirdNode(id="child1", length=2.0, is_stale=True)
     child2 = MbirdNode(id="child2", length=1.5, is_stale=True)
     root = MbirdNode(id="root", length=None, children=[child1, child2], is_stale=True)
     project_dir = tmp_path / "test.mbird"
     data = MbirdData(root=root, directory=project_dir)
 
-    TreeService.regenerate(data)
+    # Mock the generator
+    mock_generator = Mock()
+    with patch.object(TreeService, "_generator", mock_generator):
+        TreeService.regenerate(data)
 
-    # Check audio files were created
-    clips_dir = project_dir / "clips"
-    assert clips_dir.exists()
-    assert (clips_dir / "child1.wav").exists()
-    assert (clips_dir / "child2.wav").exists()
+    # Verify audio generator was called for leaf nodes
+    assert mock_generator.generate_node_audio.call_count == 2
 
-    # Check sound_file was set
+    # Verify correct arguments
+    calls = mock_generator.generate_node_audio.call_args_list
+    assert calls[0][0][0].id == "child1"  # First arg is node
+    assert calls[0][0][1] == project_dir / "clips" / "child1.wav"  # Second is path
+
+    assert calls[1][0][0].id == "child2"
+    assert calls[1][0][1] == project_dir / "clips" / "child2.wav"
+
+    # Verify sound_file was set
     assert data.root is not None
     assert data.root.children[0].sound_file == "child1.wav"
     assert data.root.children[1].sound_file == "child2.wav"

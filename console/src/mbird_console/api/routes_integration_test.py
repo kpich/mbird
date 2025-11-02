@@ -208,3 +208,37 @@ def test_adding_child_transfers_parent_length_to_child():
     data = update_response.json()
     assert data["tree"]["length"] is None
     assert data["tree"]["children"][0]["length"] == 15.0
+
+
+def test_regenerate_creates_audio_files_for_stale_leaf_nodes(tmp_path: Path):
+    """Integration test: regenerate creates audio files through full stack."""
+    project_path = str(tmp_path / "test_project.mbird")
+
+    # Create project with stale leaf nodes
+    client.post("/api/project/create", json={"path": project_path})
+
+    # Add children
+    tree_with_children = {
+        "id": "root",
+        "length": None,
+        "children": [
+            {"id": "child1", "length": 2.0, "children": []},
+            {"id": "child2", "length": 1.5, "children": []},
+        ],
+    }
+    client.post("/api/tree", json=tree_with_children)
+
+    # Regenerate should create audio files
+    regenerate_response = client.post("/api/regenerate")
+    assert regenerate_response.status_code == 200
+
+    # Check audio files were created
+    clips_dir = Path(project_path) / "clips"
+    assert clips_dir.exists()
+    assert (clips_dir / "child1.wav").exists()
+    assert (clips_dir / "child2.wav").exists()
+
+    # Check sound_file was set in response
+    data = regenerate_response.json()
+    assert data["tree"]["children"][0]["sound_file"] == "child1.wav"
+    assert data["tree"]["children"][1]["sound_file"] == "child2.wav"
