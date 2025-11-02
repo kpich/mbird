@@ -100,3 +100,22 @@ def test_is_stale_preserved_across_save_and_load(tmp_path: Path):
     assert loaded_data.root is not None
     assert loaded_data.root.is_stale is True
     assert loaded_data.root.children[0].is_stale is False
+
+
+def test_get_clip_path_creates_clips_dir_and_returns_path(tmp_path: Path):
+    root = MbirdNode(id="root", length=None)
+    mbird_dir = tmp_path / "test.mbird"
+    data = MbirdData(root=root, directory=mbird_dir)
+
+    clip_path = data.get_clip_path("node1")
+
+    assert clip_path == mbird_dir / "clips" / "node1.wav"
+    assert (mbird_dir / "clips").exists()
+
+
+def test_get_clip_path_raises_when_no_directory_set():
+    root = MbirdNode(id="root", length=None)
+    data = MbirdData(root=root)
+
+    with pytest.raises(ValueError, match="No directory set"):
+        data.get_clip_path("node1")

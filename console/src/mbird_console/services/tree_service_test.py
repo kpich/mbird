@@ -58,11 +58,12 @@ def test_update_tree_with_invalid_structure_raises_error():
         TreeService.update_tree(invalid_tree)
 
 
-def test_regenerate_sets_is_stale_false_for_all_nodes():
+def test_regenerate_sets_is_stale_false_for_all_nodes(tmp_path):
     child1 = MbirdNode(id="child1", length=10.0, is_stale=True)
     child2 = MbirdNode(id="child2", length=5.0, is_stale=True)
     root = MbirdNode(id="root", length=None, children=[child1, child2], is_stale=True)
-    data = MbirdData(root=root)
+    project_dir = tmp_path / "test.mbird"
+    data = MbirdData(root=root, directory=project_dir)
 
     TreeService.regenerate(data)
 
@@ -85,13 +86,36 @@ def test_transfer_length_to_leaves_transfers_parent_length_to_child():
     assert result["children"][0]["length"] == 15.0
 
 
-def test_generate_recursively_sets_is_stale_false():
+def test_generate_recursively_sets_is_stale_false(tmp_path):
     child1 = MbirdNode(id="child1", length=10.0, is_stale=True)
     child2 = MbirdNode(id="child2", length=5.0, is_stale=True)
     root = MbirdNode(id="root", length=None, children=[child1, child2], is_stale=True)
+    project_dir = tmp_path / "test.mbird"
+    data = MbirdData(root=root, directory=project_dir)
 
-    TreeService.generate(root)
+    TreeService.generate(root, data)
 
     assert root.is_stale is False
     assert child1.is_stale is False
     assert child2.is_stale is False
+
+
+def test_generate_creates_audio_files_for_stale_leaf_nodes(tmp_path):
+    child1 = MbirdNode(id="child1", length=2.0, is_stale=True)
+    child2 = MbirdNode(id="child2", length=1.5, is_stale=True)
+    root = MbirdNode(id="root", length=None, children=[child1, child2], is_stale=True)
+    project_dir = tmp_path / "test.mbird"
+    data = MbirdData(root=root, directory=project_dir)
+
+    TreeService.regenerate(data)
+
+    # Check audio files were created
+    clips_dir = project_dir / "clips"
+    assert clips_dir.exists()
+    assert (clips_dir / "child1.wav").exists()
+    assert (clips_dir / "child2.wav").exists()
+
+    # Check sound_file was set
+    assert data.root is not None
+    assert data.root.children[0].sound_file == "child1.wav"
+    assert data.root.children[1].sound_file == "child2.wav"

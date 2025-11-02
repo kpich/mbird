@@ -65,7 +65,12 @@ async def get_tree() -> dict[str, Any]:
 async def update_tree(tree_data: dict[str, Any]) -> dict[str, Any]:
     """Update entire tree."""
     try:
+        # Preserve directory from existing data
+        existing_directory = (
+            state.current_data.directory if state.current_data else None
+        )
         data = tree_service.update_tree(tree_data)
+        data.directory = existing_directory
         state.current_data = data
 
         if data.root is None:
