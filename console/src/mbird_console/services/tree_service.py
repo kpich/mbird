@@ -1,14 +1,14 @@
-import random
 from typing import Any
-import wave
 
-import numpy as np
-
+from mbird_audiogen import MbirdGenerator
 from mbird_data import MbirdData, MbirdNode
 
 
 class TreeService:
     """Manages tree operations and transformations."""
+
+    # Audio generator instance
+    _generator = MbirdGenerator()
 
     @staticmethod
     def get_tree(data: MbirdData) -> dict[str, Any]:
@@ -45,31 +45,12 @@ class TreeService:
 
     @staticmethod
     def _generate_audio(node: MbirdNode, data: MbirdData) -> None:
-        """Generate sinusoid audio file for a node."""
-        if node.length is None or node.length <= 0:
-            return
-
-        # Random frequency between 200 and 1000 Hz
-        frequency = random.uniform(200, 1000)
-        sample_rate = 44100
-        duration = node.length
-
-        # Generate sinusoid
-        t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-        audio = np.sin(2 * np.pi * frequency * t)
-
-        # Convert to int16 for WAV
-        audio_int16 = (audio * 32767).astype(np.int16)
-
+        """Generate audio file for a node using MbirdGenerator."""
         # Get clip path from data
         clip_path = data.get_clip_path(node.id)
 
-        # Write WAV file
-        with wave.open(str(clip_path), "wb") as wav_file:
-            wav_file.setnchannels(1)  # Mono
-            wav_file.setsampwidth(2)  # 2 bytes for int16
-            wav_file.setframerate(sample_rate)
-            wav_file.writeframes(audio_int16.tobytes())
+        # Generate audio using the generator
+        TreeService._generator.generate_node_audio(node, clip_path)
 
         # Set sound_file reference
         node.sound_file = f"{node.id}.wav"
