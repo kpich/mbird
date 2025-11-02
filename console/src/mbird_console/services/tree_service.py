@@ -2,8 +2,9 @@ import random
 from typing import Any
 import wave
 
-from mbird_data import MbirdData, MbirdNode
 import numpy as np
+
+from mbird_data import MbirdData, MbirdNode
 
 
 class TreeService:

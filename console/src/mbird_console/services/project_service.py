@@ -1,8 +1,7 @@
 from pathlib import Path
 
-from mbird_data import MbirdData, MbirdNode
-
 from mbird_console.state import State
+from mbird_data import MbirdData, MbirdNode
 
 
 class ProjectService:

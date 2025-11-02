@@ -1,10 +1,9 @@
 from pathlib import Path
 
-from mbird_data import MbirdData, MbirdNode
-from mbird_data.constants import TREE_FNAME
-
 from mbird_console.services.save_service import SaveService
 from mbird_console.state import State
+from mbird_data import MbirdData, MbirdNode
+from mbird_data.constants import TREE_FNAME
 
 
 def test_save_project_writes_to_disk(tmp_path: Path):

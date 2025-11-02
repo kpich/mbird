@@ -44,4 +44,4 @@ ignore = ["SIM108"]  # Allow if-else over ternary for readability
 [tool.ruff.lint.isort]
 force-single-line = false
 force-sort-within-sections = true
-known-first-party = ["mbird_data"]
+known-first-party = ["mbird_console", "mbird_data"]

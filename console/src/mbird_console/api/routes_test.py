@@ -2,11 +2,11 @@ from pathlib import Path
 from typing import Any
 
 from fastapi.testclient import TestClient
-from mbird_data.constants import TREE_FNAME
 import pytest
 
 from mbird_console.api import routes
 from mbird_console.main import app
+from mbird_data.constants import TREE_FNAME
 
 client = TestClient(app)
 

@@ -1,9 +1,9 @@
 from typing import Any
 
-from mbird_data import MbirdData, MbirdNode
 import pytest
 
 from mbird_console.services.tree_service import TreeService
+from mbird_data import MbirdData, MbirdNode
 
 
 def test_get_tree_returns_tree_data():
