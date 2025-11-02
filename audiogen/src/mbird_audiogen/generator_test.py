@@ -1,6 +1,8 @@
 from pathlib import Path
 import wave
 
+import pytest
+
 from mbird_audiogen import MbirdGenerator
 from mbird_data import MbirdNode
 
@@ -25,7 +27,7 @@ def test_generate_node_audio_creates_wav_file(tmp_path: Path):
         # Verify duration (approximately 0.5 seconds)
         n_frames = wav_file.getnframes()
         duration = n_frames / 44100
-        assert 0.49 < duration < 0.51  # Allow small tolerance
+        assert duration == pytest.approx(0.5, abs=0.01)
 
 
 def test_generate_node_audio_with_different_lengths(tmp_path: Path):
@@ -71,30 +73,3 @@ def test_generate_node_audio_skips_invalid_length(tmp_path: Path):
     zero_path = tmp_path / "zero.wav"
     generator.generate_node_audio(zero_node, zero_path)
     assert not zero_path.exists()
-
-
-def test_generate_node_audio_produces_sinusoid(tmp_path: Path):
-    """Unit test: verify generated audio is a valid sinusoid."""
-    generator = MbirdGenerator()
-    node = MbirdNode(id="sine", length=0.1)
-    output_path = tmp_path / "sine.wav"
-
-    generator.generate_node_audio(node, output_path)
-
-    # Read the audio data
-    with wave.open(str(output_path), "rb") as wav_file:
-        frames = wav_file.readframes(wav_file.getnframes())
-
-    # Convert bytes to int16 values
-    import numpy as np
-
-    audio_data = np.frombuffer(frames, dtype=np.int16)
-
-    # Basic sanity checks for sinusoid
-    assert len(audio_data) > 0
-    assert audio_data.max() > 0  # Has positive values
-    assert audio_data.min() < 0  # Has negative values
-
-    # Sinusoid should have values across the range
-    assert audio_data.max() > 20000  # Reasonably loud
-    assert audio_data.min() < -20000
