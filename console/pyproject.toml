@@ -8,10 +8,10 @@ version = "0.1.0"
 description = "Browser-based console for mbird graph editing"
 requires-python = ">=3.10, <4"
 dependencies = [
-    "fastapi>=0.104.0",
-    "uvicorn[standard]>=0.24.0",
+    "fastapi",
     "mbird-data",
-    "numpy>=1.24.0",
+    "numpy",
+    "uvicorn[standard]",
 ]
 
 [project.optional-dependencies]
