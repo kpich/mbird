@@ -3,15 +3,13 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mbird-console"
+name = "mbird-audiogen"
 version = "0.1.0"
-description = "Browser-based console for mbird graph editing"
+description = "Audio generation for mbird"
 requires-python = ">=3.10, <4"
 dependencies = [
-    "fastapi",
-    "mbird-audiogen",
     "mbird-data",
-    "uvicorn[standard]",
+    "numpy>=1.24.0",
 ]
 
 [project.optional-dependencies]
@@ -21,11 +19,13 @@ dev = [
 ]
 test = [
     "pytest",
-    "httpx",  # for testing FastAPI
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+mbird_audiogen = ["py.typed"]
 
 [tool.ruff]
 line-length = 88
@@ -45,4 +45,4 @@ ignore = ["SIM108"]  # Allow if-else over ternary for readability
 [tool.ruff.lint.isort]
 force-single-line = false
 force-sort-within-sections = true
-known-first-party = ["mbird_audiogen", "mbird_console", "mbird_data"]
+known-first-party = ["mbird_audiogen", "mbird_data"]
