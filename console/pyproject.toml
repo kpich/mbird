@@ -8,9 +8,10 @@ version = "0.1.0"
 description = "Browser-based console for mbird graph editing"
 requires-python = ">=3.10, <4"
 dependencies = [
-    "fastapi>=0.104.0",
-    "uvicorn[standard]>=0.24.0",
+    "fastapi",
     "mbird-data",
+    "numpy",
+    "uvicorn[standard]",
 ]
 
 [project.optional-dependencies]
@@ -44,4 +45,4 @@ ignore = ["SIM108"]  # Allow if-else over ternary for readability
 [tool.ruff.lint.isort]
 force-single-line = false
 force-sort-within-sections = true
-known-first-party = ["mbird_console"]
+known-first-party = ["mbird_console", "mbird_data"]

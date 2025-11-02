@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Core data structures for mbird"
 requires-python = ">=3.10, <4"
 dependencies = [
-    "pydantic>=2.12, <3",
+    "pydantic",
 ]
 
 [project.optional-dependencies]
@@ -44,4 +44,4 @@ ignore = ["SIM108"]  # Allow if-else over ternary for readability
 [tool.ruff.lint.isort]
 force-single-line = false
 force-sort-within-sections = true
-known-first-party = ["mbird_data"]
+known-first-party = ["mbird_console", "mbird_data"]

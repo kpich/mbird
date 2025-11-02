@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 
-from mbird_data import MbirdData
-
 from mbird_console.state import State
+from mbird_data import MbirdData
 
 
 class SaveService:

@@ -6,8 +6,9 @@ from mbird_data.models import MbirdNode
 
 
 class MbirdData:
-    def __init__(self, root: MbirdNode | None = None):
+    def __init__(self, root: MbirdNode | None = None, directory: Path | None = None):
         self.root = root
+        self.directory = directory
 
     @classmethod
     def load(cls, dir_path: str | Path) -> "MbirdData":
@@ -36,7 +37,7 @@ class MbirdData:
 
         data = json.loads(tree_file.read_text())
         root = MbirdNode(**data)
-        return cls(root=root)
+        return cls(root=root, directory=dir_path)
 
     def save(self, dir_path: str | Path) -> None:
         """
@@ -54,6 +55,27 @@ class MbirdData:
             dir_path = Path(str(dir_path) + MBIRD_EXT)
 
         dir_path.mkdir(parents=True, exist_ok=True)
+        self.directory = dir_path
 
         tree_file = dir_path / TREE_FNAME
         tree_file.write_text(json.dumps(self.root.model_dump(), indent=2))
+
+    def get_clip_path(self, node_id: str) -> Path:
+        """
+        Get the path for a node's audio clip file.
+
+        Creates the clips/ directory if it doesn't exist.
+
+        Args:
+            node_id: ID of the node
+
+        Returns:
+            Path to the clip file: [directory]/clips/[node_id].wav
+        """
+        if self.directory is None:
+            raise ValueError("No directory set for this MbirdData instance")
+
+        clips_dir = self.directory / "clips"
+        clips_dir.mkdir(parents=True, exist_ok=True)
+
+        return clips_dir / f"{node_id}.wav"

@@ -6,6 +6,7 @@ class MbirdNode(BaseModel):
     children: list["MbirdNode"] = Field(default_factory=list)
     is_stale: bool = True
     length: float | None = Field(default=10.0, ge=0)
+    sound_file: str | None = None
 
     @model_validator(mode="after")
     def validate_acyclic(self):
