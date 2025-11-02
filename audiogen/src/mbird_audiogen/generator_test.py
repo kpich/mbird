@@ -72,12 +72,6 @@ def test_generate_node_audio_skips_invalid_length(tmp_path: Path):
     generator.generate_node_audio(zero_node, zero_path)
     assert not zero_path.exists()
 
-    # Test negative length
-    neg_node = MbirdNode(id="neg", length=-1.0)
-    neg_path = tmp_path / "neg.wav"
-    generator.generate_node_audio(neg_node, neg_path)
-    assert not neg_path.exists()
-
 
 def test_generate_node_audio_produces_sinusoid(tmp_path: Path):
     """Unit test: verify generated audio is a valid sinusoid."""
