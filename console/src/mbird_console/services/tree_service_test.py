@@ -129,3 +129,85 @@ def test_generate_calls_audio_generator_for_stale_leaf_nodes(tmp_path):
     assert data.root is not None
     assert data.root.children[0].sound_file == "child1.wav"
     assert data.root.children[1].sound_file == "child2.wav"
+
+
+def test_get_leaf_nodes_returns_single_node_when_root_is_leaf():
+    root = MbirdNode(id="root", length=10.0)
+
+    leaf_nodes = TreeService.get_leaf_nodes_in_order(root)
+
+    assert len(leaf_nodes) == 1
+    assert leaf_nodes[0].id == "root"
+
+
+def test_get_leaf_nodes_returns_children_in_left_to_right_order():
+    child1 = MbirdNode(id="left", length=5.0)
+    child2 = MbirdNode(id="right", length=3.0)
+    root = MbirdNode(id="root", length=None, children=[child1, child2])
+
+    leaf_nodes = TreeService.get_leaf_nodes_in_order(root)
+
+    assert len(leaf_nodes) == 2
+    assert leaf_nodes[0].id == "left"
+    assert leaf_nodes[1].id == "right"
+
+
+def test_get_leaf_nodes_prioritizes_deeper_left_over_shallow_right():
+    # Left subtree: root -> left -> deep_left
+    deep_left = MbirdNode(id="deep_left", length=2.0)
+    left = MbirdNode(id="left", length=None, children=[deep_left])
+
+    # Right subtree: root -> right (leaf)
+    right = MbirdNode(id="right", length=4.0)
+
+    root = MbirdNode(id="root", length=None, children=[left, right])
+
+    leaf_nodes = TreeService.get_leaf_nodes_in_order(root)
+
+    assert len(leaf_nodes) == 2
+    assert leaf_nodes[0].id == "deep_left"  # Deep left comes first
+    assert leaf_nodes[1].id == "right"  # Shallow right comes second
+
+
+def test_get_leaf_nodes_handles_mixed_depth_tree_correctly():
+    # Complex tree:
+    #       root
+    #      /    \
+    #   left     right
+    #   /  \       \
+    # l1   l2      r1
+    #             /  \
+    #           r1a  r1b
+
+    l1 = MbirdNode(id="l1", length=1.0)
+    l2 = MbirdNode(id="l2", length=2.0)
+    left = MbirdNode(id="left", length=None, children=[l1, l2])
+
+    r1a = MbirdNode(id="r1a", length=3.0)
+    r1b = MbirdNode(id="r1b", length=4.0)
+    r1 = MbirdNode(id="r1", length=None, children=[r1a, r1b])
+    right = MbirdNode(id="right", length=None, children=[r1])
+
+    root = MbirdNode(id="root", length=None, children=[left, right])
+
+    leaf_nodes = TreeService.get_leaf_nodes_in_order(root)
+
+    assert len(leaf_nodes) == 4
+    assert leaf_nodes[0].id == "l1"  # Left subtree first
+    assert leaf_nodes[1].id == "l2"  # Left subtree second
+    assert leaf_nodes[2].id == "r1a"  # Right subtree third
+    assert leaf_nodes[3].id == "r1b"  # Right subtree fourth
+
+
+def test_get_leaf_nodes_skips_non_leaf_nodes():
+    leaf1 = MbirdNode(id="leaf1", length=1.0)
+    leaf2 = MbirdNode(id="leaf2", length=2.0)
+    internal = MbirdNode(id="internal", length=None, children=[leaf2])
+    root = MbirdNode(id="root", length=None, children=[leaf1, internal])
+
+    leaf_nodes = TreeService.get_leaf_nodes_in_order(root)
+
+    assert len(leaf_nodes) == 2
+    assert leaf_nodes[0].id == "leaf1"  # Direct leaf
+    assert leaf_nodes[1].id == "leaf2"  # Leaf through internal node
+    # "root" and "internal" should not be in results
