@@ -2,6 +2,7 @@ from pathlib import Path
 
 from mbird_console.state import State
 from mbird_data import MbirdData, MbirdNode
+from mbird_data.constants import MBIRD_EXT
 
 
 class ProjectService:
@@ -12,6 +13,10 @@ class ProjectService:
 
     def create_project(self, path: str) -> MbirdData:
         """Create new project with single root node."""
+        # Append .mbird extension if missing
+        if not path.endswith(MBIRD_EXT):
+            path = path + MBIRD_EXT
+
         root = MbirdNode(id="root")
         data = MbirdData(root=root, directory=Path(path))
 
