@@ -20,6 +20,9 @@ class ProjectService:
         root = MbirdNode(id="root")
         data = MbirdData(root=root, directory=Path(path))
 
+        # Save the project to disk immediately
+        data.save(path)
+
         self.state.current_data = data
         self.state.current_path = path
 

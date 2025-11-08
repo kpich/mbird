@@ -32,9 +32,6 @@ def test_load_project_reads_from_disk(tmp_path: Path):
     service = ProjectService(state)
 
     service.create_project(str(project_path))
-    created_data = state.current_data
-    assert created_data is not None
-    created_data.save(str(project_path))
 
     state.reset()
 
@@ -51,8 +48,6 @@ def test_load_project_sets_current_state(tmp_path: Path):
     service = ProjectService(state)
 
     service.create_project(str(project_path))
-    assert state.current_data is not None
-    state.current_data.save(str(project_path))
 
     state.reset()
 
@@ -100,3 +95,45 @@ def test_has_project_returns_false_when_no_project():
     service = ProjectService(state)
 
     assert service.has_project() is False
+
+
+def test_create_project_saves_to_disk(tmp_path: Path):
+    project_path = tmp_path / "test_project.mbird"
+
+    state = State()
+    service = ProjectService(state)
+
+    service.create_project(str(project_path))
+
+    # Verify directory and tree.json file were created
+    assert project_path.exists()
+    assert project_path.is_dir()
+
+    tree_file = project_path / "tree.json"
+    assert tree_file.exists()
+
+    # Verify we can load the project back
+    loaded_data = service.load_project(str(project_path))
+    assert loaded_data.root is not None
+    assert loaded_data.root.id == "root"
+
+
+def test_create_project_appends_mbird_extension(tmp_path: Path):
+    project_path_without_ext = tmp_path / "test_project"
+    expected_path = tmp_path / "test_project.mbird"
+
+    state = State()
+    service = ProjectService(state)
+
+    data = service.create_project(str(project_path_without_ext))
+
+    # Verify the extension was appended
+    assert state.current_path == str(expected_path)
+    assert data.directory == expected_path
+
+    # Verify the directory was created with .mbird extension
+    assert expected_path.exists()
+    assert expected_path.is_dir()
+
+    tree_file = expected_path / "tree.json"
+    assert tree_file.exists()
