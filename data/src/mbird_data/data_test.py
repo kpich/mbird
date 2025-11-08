@@ -119,3 +119,61 @@ def test_get_clip_path_raises_when_no_directory_set():
 
     with pytest.raises(ValueError, match="No directory set"):
         data.get_clip_path("node1")
+
+
+def test_duplicate_id_at_same_level_raises_error():
+    """Test that duplicate IDs between sibling nodes raise validation error."""
+    duplicate_dict = {
+        "id": "root",
+        "length": None,
+        "children": [
+            {"id": "duplicate", "length": 5.0, "children": []},
+            {"id": "duplicate", "length": 3.0, "children": []},
+        ],
+    }
+
+    with pytest.raises(ValueError, match="Duplicate node ID found in tree: duplicate"):
+        MbirdNode(**duplicate_dict)  # type: ignore[arg-type]
+
+
+def test_duplicate_id_at_different_levels_raises_error():
+    """Test that duplicate IDs at different tree levels raise validation error."""
+    duplicate_dict = {
+        "id": "root",
+        "length": None,
+        "children": [
+            {"id": "child1", "length": 3.0, "children": []},
+            {
+                "id": "parent",
+                "length": None,
+                "children": [{"id": "child1", "length": 2.0, "children": []}],
+            },
+        ],
+    }
+
+    with pytest.raises(ValueError, match="Duplicate node ID found in tree: child1"):
+        MbirdNode(**duplicate_dict)  # type: ignore[arg-type]
+
+
+def test_valid_tree_with_unique_ids_succeeds():
+    """Test that trees with all unique IDs pass validation."""
+    valid_dict = {
+        "id": "root",
+        "length": None,
+        "children": [
+            {"id": "child1", "length": 5.0, "children": []},
+            {
+                "id": "parent2",
+                "length": None,
+                "children": [
+                    {"id": "grandchild1", "length": 2.0, "children": []},
+                    {"id": "grandchild2", "length": 3.0, "children": []},
+                ],
+            },
+        ],
+    }
+
+    # Should not raise any exception
+    node = MbirdNode(**valid_dict)  # type: ignore[arg-type]
+    assert node.id == "root"
+    assert len(node.children) == 2

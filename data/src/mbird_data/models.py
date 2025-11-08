@@ -33,6 +33,22 @@ class MbirdNode(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def validate_unique_ids(self):
+        """Ensure all node IDs in the tree are unique."""
+        seen_ids = set()
+
+        def collect_ids(node: "MbirdNode") -> None:
+            if node.id in seen_ids:
+                raise ValueError(f"Duplicate node ID found in tree: {node.id}")
+            seen_ids.add(node.id)
+
+            for child in node.children:
+                collect_ids(child)
+
+        collect_ids(self)
+        return self
+
+    @model_validator(mode="after")
     def validate_leaf_only_length(self):
         """Ensure only leaf nodes (no children) have length."""
         if self.children and self.length is not None:
