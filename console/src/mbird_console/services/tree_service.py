@@ -26,10 +26,27 @@ class TreeService:
 
     @staticmethod
     def regenerate(data: MbirdData) -> MbirdData:
-        """Run generate() to set is_stale=False for all nodes."""
+        """Run generate() to set is_stale=False for all nodes and concatenate clips."""
         if data.root is None:
             raise ValueError("No root node in project data")
+
+        # Generate individual clips for stale nodes
         TreeService.generate(data.root, data)
+
+        # Get leaf nodes in order and concatenate their clips
+        leaf_nodes = TreeService.get_leaf_nodes_in_order(data.root)
+        clip_paths = []
+
+        for leaf_node in leaf_nodes:
+            if leaf_node.sound_file:  # Only include nodes with generated audio
+                clip_path = data.get_clip_path(leaf_node.id)
+                clip_paths.append(clip_path)
+
+        # Create concatenated output file
+        if clip_paths and data.directory:
+            output_path = data.directory / "cur.wav"
+            TreeService._generator.concatenate_leaf_nodes(clip_paths, output_path)
+
         return data
 
     @staticmethod
@@ -74,3 +91,27 @@ class TreeService:
         ]
 
         return tree_data
+
+    @staticmethod
+    def get_leaf_nodes_in_order(node: MbirdNode) -> list[MbirdNode]:
+        """Get leaf nodes in depth-first traversal order.
+
+        Args:
+            node: Root node to start traversal from
+
+        Returns:
+            List of leaf nodes in traversal order
+        """
+        leaf_nodes = []
+
+        def traverse(current_node: MbirdNode):
+            if not current_node.children:
+                # This is a leaf node
+                leaf_nodes.append(current_node)
+            else:
+                # Traverse children in order
+                for child in current_node.children:
+                    traverse(child)
+
+        traverse(node)
+        return leaf_nodes

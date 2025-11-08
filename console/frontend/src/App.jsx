@@ -9,6 +9,7 @@ function App() {
   const [lastSaved, setLastSaved] = useState(null)
   const [saving, setSaving] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
+  const [playing, setPlaying] = useState(false)
 
   const handleProjectLoaded = (path, tree) => {
     setProjectPath(path)
@@ -60,6 +61,37 @@ function App() {
     }
   }
 
+  const handlePlay = async () => {
+    setPlaying(true)
+    try {
+      const response = await fetch('/api/play')
+      if (response.ok) {
+        const audioBlob = await response.blob()
+        const audioUrl = URL.createObjectURL(audioBlob)
+        const audio = new Audio(audioUrl)
+
+        audio.onended = () => {
+          setPlaying(false)
+          URL.revokeObjectURL(audioUrl)
+        }
+
+        audio.onerror = () => {
+          setPlaying(false)
+          URL.revokeObjectURL(audioUrl)
+          console.error('Audio playback failed')
+        }
+
+        await audio.play()
+      } else {
+        console.error('Play failed:', await response.text())
+        setPlaying(false)
+      }
+    } catch (err) {
+      console.error('Play error:', err)
+      setPlaying(false)
+    }
+  }
+
   if (!projectLoaded) {
     return <ProjectDialog onProjectLoaded={handleProjectLoaded} />
   }
@@ -76,6 +108,13 @@ function App() {
             className="app-regenerate-btn"
           >
             {regenerating ? 'Regenerating...' : 'Regenerate'}
+          </button>
+          <button
+            onClick={handlePlay}
+            disabled={playing}
+            className="app-play-btn"
+          >
+            {playing ? 'Playing...' : 'Play'}
           </button>
           <h2 className="app-title">{basename}</h2>
         </div>
