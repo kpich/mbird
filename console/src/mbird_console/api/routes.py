@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 from mbird_console.services import (
     FilesystemService,
@@ -141,3 +142,21 @@ async def browse_directory(path: str = "/") -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="Directory not found") from e
     except NotADirectoryError as e:
         raise HTTPException(status_code=400, detail="Not a directory") from e
+
+
+@router.get("/api/play")
+async def play_concatenated_audio() -> FileResponse:
+    """Serve the concatenated audio file (cur.wav) for playback."""
+    data = project_service.get_current_data()
+    if data is None or data.directory is None:
+        raise HTTPException(status_code=404, detail="No project loaded")
+
+    audio_path = data.directory / "cur.wav"
+    if not audio_path.exists():
+        raise HTTPException(
+            status_code=404, detail="No audio file available. Try regenerating first."
+        )
+
+    return FileResponse(
+        path=str(audio_path), media_type="audio/wav", filename="cur.wav"
+    )
