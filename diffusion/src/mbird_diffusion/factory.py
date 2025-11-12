@@ -6,60 +6,60 @@ without changing calling code.
 
 from typing import Literal
 
-from mbird_diffusion.expander import AudioDiffusionExpander
-from mbird_diffusion.inpainter import AudioDiffusionInpainter
-from mbird_diffusion.tasks import AudioExpander, AudioInpainter
+from mbird_diffusion.extrapolator import AudioDiffusionExtrapolator
+from mbird_diffusion.interpolator import AudioDiffusionInterpolator
+from mbird_diffusion.tasks import AudioExtrapolator, AudioInterpolator
 
 # Type aliases for available model names
-InpainterModel = Literal["audio-diffusion", "default"]
-ExpanderModel = Literal["audio-diffusion", "default"]
+InterpolatorModel = Literal["audio-diffusion", "default"]
+ExtrapolatorModel = Literal["audio-diffusion", "default"]
 
 
-def get_inpainter(
-    model_name: InpainterModel = "default", device: str | None = None
-) -> AudioInpainter:
-    """Get an audio inpainter model by name.
+def get_interpolator(
+    model_name: InterpolatorModel = "default", device: str | None = None
+) -> AudioInterpolator:
+    """Get an audio interpolator model by name.
 
     Args:
         model_name: Name of the model to use. Options:
-            - "audio-diffusion" or "default": AudioDiffusionInpainter
+            - "audio-diffusion" or "default": AudioDiffusionInterpolator
         device: Device to run inference on (None for auto-detect)
 
     Returns:
-        An AudioInpainter instance
+        An AudioInterpolator instance
 
     Raises:
         ValueError: If model_name is not recognized
     """
     if model_name in ("audio-diffusion", "default"):
-        return AudioDiffusionInpainter(device=device)
+        return AudioDiffusionInterpolator(device=device)
     else:
         raise ValueError(
-            f"Unknown inpainter model: {model_name}. "
+            f"Unknown interpolator model: {model_name}. "
             f"Available: 'audio-diffusion', 'default'"
         )
 
 
-def get_expander(
-    model_name: ExpanderModel = "default", device: str | None = None
-) -> AudioExpander:
-    """Get an audio expander model by name.
+def get_extrapolator(
+    model_name: ExtrapolatorModel = "default", device: str | None = None
+) -> AudioExtrapolator:
+    """Get an audio extrapolator model by name.
 
     Args:
         model_name: Name of the model to use. Options:
-            - "audio-diffusion" or "default": AudioDiffusionExpander
+            - "audio-diffusion" or "default": AudioDiffusionExtrapolator
         device: Device to run inference on (None for auto-detect)
 
     Returns:
-        An AudioExpander instance
+        An AudioExtrapolator instance
 
     Raises:
         ValueError: If model_name is not recognized
     """
     if model_name in ("audio-diffusion", "default"):
-        return AudioDiffusionExpander(device=device)
+        return AudioDiffusionExtrapolator(device=device)
     else:
         raise ValueError(
-            f"Unknown expander model: {model_name}. "
+            f"Unknown extrapolator model: {model_name}. "
             f"Available: 'audio-diffusion', 'default'"
         )

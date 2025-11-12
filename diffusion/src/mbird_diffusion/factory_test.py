@@ -2,55 +2,55 @@
 
 import pytest
 
-from mbird_diffusion.expander import AudioDiffusionExpander
-from mbird_diffusion.factory import get_expander, get_inpainter
-from mbird_diffusion.inpainter import AudioDiffusionInpainter
+from mbird_diffusion.extrapolator import AudioDiffusionExtrapolator
+from mbird_diffusion.factory import get_extrapolator, get_interpolator
+from mbird_diffusion.interpolator import AudioDiffusionInterpolator
 
 
-def test_get_inpainter_returns_default_implementation() -> None:
-    """get_inpainter with default returns AudioDiffusionInpainter."""
-    inpainter = get_inpainter()
+def test_get_interpolator_returns_default_implementation() -> None:
+    """get_interpolator with default returns AudioDiffusionInterpolator."""
+    interpolator = get_interpolator()
 
-    assert isinstance(inpainter, AudioDiffusionInpainter)
-
-
-def test_get_inpainter_accepts_explicit_model_name() -> None:
-    """get_inpainter accepts explicit model name."""
-    inpainter = get_inpainter(model_name="audio-diffusion")
-
-    assert isinstance(inpainter, AudioDiffusionInpainter)
+    assert isinstance(interpolator, AudioDiffusionInterpolator)
 
 
-def test_get_inpainter_raises_on_unknown_model() -> None:
-    """get_inpainter raises ValueError for unknown model names."""
-    with pytest.raises(ValueError, match="Unknown inpainter model"):
-        get_inpainter(model_name="nonexistent")  # type: ignore
+def test_get_interpolator_accepts_explicit_model_name() -> None:
+    """get_interpolator accepts explicit model name."""
+    interpolator = get_interpolator(model_name="audio-diffusion")
+
+    assert isinstance(interpolator, AudioDiffusionInterpolator)
 
 
-def test_get_expander_returns_default_implementation() -> None:
-    """get_expander with default returns AudioDiffusionExpander."""
-    expander = get_expander()
-
-    assert isinstance(expander, AudioDiffusionExpander)
-
-
-def test_get_expander_accepts_explicit_model_name() -> None:
-    """get_expander accepts explicit model name."""
-    expander = get_expander(model_name="audio-diffusion")
-
-    assert isinstance(expander, AudioDiffusionExpander)
+def test_get_interpolator_raises_on_unknown_model() -> None:
+    """get_interpolator raises ValueError for unknown model names."""
+    with pytest.raises(ValueError, match="Unknown interpolator model"):
+        get_interpolator(model_name="nonexistent")  # type: ignore
 
 
-def test_get_expander_raises_on_unknown_model() -> None:
-    """get_expander raises ValueError for unknown model names."""
-    with pytest.raises(ValueError, match="Unknown expander model"):
-        get_expander(model_name="nonexistent")  # type: ignore
+def test_get_extrapolator_returns_default_implementation() -> None:
+    """get_extrapolator with default returns AudioDiffusionExtrapolator."""
+    extrapolator = get_extrapolator()
+
+    assert isinstance(extrapolator, AudioDiffusionExtrapolator)
+
+
+def test_get_extrapolator_accepts_explicit_model_name() -> None:
+    """get_extrapolator accepts explicit model name."""
+    extrapolator = get_extrapolator(model_name="audio-diffusion")
+
+    assert isinstance(extrapolator, AudioDiffusionExtrapolator)
+
+
+def test_get_extrapolator_raises_on_unknown_model() -> None:
+    """get_extrapolator raises ValueError for unknown model names."""
+    with pytest.raises(ValueError, match="Unknown extrapolator model"):
+        get_extrapolator(model_name="nonexistent")  # type: ignore
 
 
 def test_factory_functions_accept_device_parameter() -> None:
     """Factory functions pass through device parameter to implementations."""
-    inpainter = get_inpainter(device="cpu")
-    expander = get_expander(device="cpu")
+    interpolator = get_interpolator(device="cpu")
+    extrapolator = get_extrapolator(device="cpu")
 
-    assert inpainter.device.type == "cpu"
-    assert expander.device.type == "cpu"
+    assert interpolator.device.type == "cpu"
+    assert extrapolator.device.type == "cpu"

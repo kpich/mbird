@@ -9,13 +9,13 @@ from typing import Protocol
 import numpy as np
 
 
-class AudioInpainter(Protocol):
-    """Protocol for audio inpainting/infilling models.
+class AudioInterpolator(Protocol):
+    """Protocol for audio interpolation models.
 
-    Inpainting fills gaps between audio segments, smoothing transitions.
+    Interpolation fills gaps between audio segments, smoothing transitions.
     """
 
-    def inpaint(
+    def interpolate(
         self,
         audio1: np.ndarray,
         audio2: np.ndarray,
@@ -37,19 +37,19 @@ class AudioInpainter(Protocol):
         ...
 
 
-class AudioExpander(Protocol):
-    """Protocol for audio expansion/extrapolation models.
+class AudioExtrapolator(Protocol):
+    """Protocol for audio extrapolation models.
 
-    Expansion extends short audio clips to longer durations.
+    Extrapolation extends short audio clips to longer durations.
     """
 
-    def expand(
+    def extrapolate(
         self,
         audio: np.ndarray,
         target_duration: float,
         sample_rate: int = 44100,
     ) -> np.ndarray:
-        """Expand a short audio clip to a longer target duration.
+        """Extrapolate a short audio clip to a longer target duration.
 
         Args:
             audio: Input audio segment (shape: [samples] or [channels, samples])
@@ -57,6 +57,6 @@ class AudioExpander(Protocol):
             sample_rate: Sample rate in Hz (default: 44100)
 
         Returns:
-            Expanded audio of target_duration length (shape matches input shape)
+            Extrapolated audio of target_duration length (shape matches input shape)
         """
         ...

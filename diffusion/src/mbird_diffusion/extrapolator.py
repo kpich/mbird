@@ -1,19 +1,19 @@
-"""Concrete implementations of audio expansion models."""
+"""Concrete implementations of audio extrapolation models."""
 
 from audio_diffusion_pytorch import DiffusionModel
 import numpy as np
 import torch
 
 
-class AudioDiffusionExpander:
-    """Audio expander using audio-diffusion-pytorch for extrapolation.
+class AudioDiffusionExtrapolator:
+    """Audio extrapolator using audio-diffusion-pytorch for extrapolation.
 
     This implementation uses diffusion models to expand short audio clips
     to longer durations by plausibly continuing the audio.
     """
 
     def __init__(self, device: str | None = None):
-        """Initialize the expander.
+        """Initialize the extrapolator.
 
         Args:
             device: Device to run inference on. If None, auto-detects
@@ -28,21 +28,15 @@ class AudioDiffusionExpander:
                 device = "cpu"
 
         self.device = torch.device(device)
+
+        # TODO: Load pretrained weights or train model for extrapolation
+        # NOTE: DiffusionModel instantiation commented out until we have model weights
+        # self._model = DiffusionModel(
+        #     # Model configuration will go here
+        # ).to(self.device)
         self._model: DiffusionModel | None = None
 
-    def _ensure_model_loaded(self) -> None:
-        """Lazy load the model on first use."""
-        if self._model is None:
-            # NOTE: DiffusionModel will need to be instantiated with a trained model
-            # For now, this is a placeholder that will require model weights
-            # TODO: Load pretrained weights or train model for expansion
-            self._model = DiffusionModel(
-                # Model configuration will go here
-                # This is intentionally incomplete until we have trained weights
-            )
-            self._model = self._model.to(self.device)
-
-    def expand(
+    def extrapolate(
         self,
         audio: np.ndarray,
         target_duration: float,
@@ -56,10 +50,8 @@ class AudioDiffusionExpander:
             sample_rate: Sample rate in Hz (default: 44100)
 
         Returns:
-            Expanded audio of target_duration length
+            Extrapolated audio of target_duration length
         """
-        self._ensure_model_loaded()
-
         # Convert to torch tensor
         # float<samples> or float<channels, samples>
         audio_tensor = torch.from_numpy(audio).float().to(self.device)
@@ -86,7 +78,7 @@ class AudioDiffusionExpander:
         # Calculate how many samples to generate
         samples_to_generate = target_samples - current_samples
 
-        # TODO: Perform expansion with the model
+        # TODO: Perform extrapolation with the model
         # This is a placeholder - actual implementation depends on model architecture
         # Options:
         # 1. Autoregressively generate continuation
@@ -94,11 +86,11 @@ class AudioDiffusionExpander:
         # 3. Use inpainting with partial conditioning
 
         # For now, return a simple repeat/fade as placeholder
-        # This will be replaced with actual diffusion expansion
-        expanded = self._simple_repeat_fade(audio_tensor, samples_to_generate)
+        # This will be replaced with actual diffusion extrapolation
+        extrapolated = self._simple_repeat_fade(audio_tensor, samples_to_generate)
 
         # Convert back to numpy
-        result = expanded.cpu().numpy()
+        result = extrapolated.cpu().numpy()
 
         if squeeze_output:
             result = result.squeeze(0)
@@ -115,7 +107,7 @@ class AudioDiffusionExpander:
             samples_to_generate: Number of samples to add
 
         Returns:
-            Expanded audio
+            Extrapolated audio
         """
         # Take the last portion and repeat with fade
         repeat_length = min(samples_to_generate, audio.shape[1])

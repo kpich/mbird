@@ -1,19 +1,19 @@
-"""Concrete implementations of audio inpainting models."""
+"""Concrete implementations of audio interpolation models."""
 
 from audio_diffusion_pytorch import VInpainter
 import numpy as np
 import torch
 
 
-class AudioDiffusionInpainter:
-    """Audio inpainter using audio-diffusion-pytorch's VInpainter.
+class AudioDiffusionInterpolator:
+    """Audio interpolator using audio-diffusion-pytorch's VInpainter.
 
     This implementation uses a variational inpainting approach with diffusion
     models to fill gaps between audio segments smoothly.
     """
 
     def __init__(self, device: str | None = None):
-        """Initialize the inpainter.
+        """Initialize the interpolator.
 
         Args:
             device: Device to run inference on. If None, auto-detects
@@ -28,21 +28,15 @@ class AudioDiffusionInpainter:
                 device = "cpu"
 
         self.device = torch.device(device)
+
+        # TODO: Load pretrained weights or train model
+        # NOTE: VInpainter instantiation commented out until we have model weights
+        # self._model = VInpainter(
+        #     # Model configuration will go here
+        # ).to(self.device)
         self._model: VInpainter | None = None
 
-    def _ensure_model_loaded(self) -> None:
-        """Lazy load the model on first use."""
-        if self._model is None:
-            # NOTE: VInpainter will need to be instantiated with a trained model
-            # For now, this is a placeholder that will require model weights
-            # TODO: Load pretrained weights or train model
-            self._model = VInpainter(
-                # Model configuration will go here
-                # This is intentionally incomplete until we have trained weights
-            )
-            self._model = self._model.to(self.device)
-
-    def inpaint(
+    def interpolate(
         self,
         audio1: np.ndarray,
         audio2: np.ndarray,
@@ -60,8 +54,6 @@ class AudioDiffusionInpainter:
         Returns:
             Complete audio with audio1, generated gap, and audio2 concatenated
         """
-        self._ensure_model_loaded()
-
         # Convert to torch tensors
         # float<samples> or float<channels, samples>
         audio1_tensor = torch.from_numpy(audio1).float().to(self.device)
@@ -90,21 +82,21 @@ class AudioDiffusionInpainter:
         full_audio[:, : audio1_tensor.shape[1]] = audio1_tensor
         full_audio[:, -audio2_tensor.shape[1] :] = audio2_tensor
 
-        # Create mask (1 = inpaint this region, 0 = keep original)
+        # Create mask (1 = interpolate this region, 0 = keep original)
         # float<channels, total_samples>
         mask = torch.zeros_like(full_audio)
         mask[:, audio1_tensor.shape[1] : -audio2_tensor.shape[1]] = 1.0
 
-        # TODO: Perform inpainting with the model
+        # TODO: Perform interpolation with the model
         # This is a placeholder - actual implementation depends on model architecture
-        # inpainted = self._model(full_audio, mask)
+        # interpolated = self._model(full_audio, mask)
 
         # For now, return a simple crossfade as placeholder
-        # This will be replaced with actual diffusion inpainting
-        inpainted = self._simple_crossfade(audio1_tensor, audio2_tensor, gap_samples)
+        # This will be replaced with actual diffusion interpolation
+        interpolated = self._simple_crossfade(audio1_tensor, audio2_tensor, gap_samples)
 
         # Convert back to numpy
-        result = inpainted.cpu().numpy()
+        result = interpolated.cpu().numpy()
 
         if squeeze_output:
             result = result.squeeze(0)
